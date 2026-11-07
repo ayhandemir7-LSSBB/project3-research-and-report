@@ -38,7 +38,7 @@ Today the steps from "this is annoying" → research → compliance check → pr
 
 **One submission, two reports.** The employee describes the problem once. Operations gets help right away, and leadership gets a scoped, compliant use case. Bottom-up demand feeds a top-down AI portfolio.
 
-### Why I chose this project
+### Why  I chose this project
 
 - **Same facts, different readers.** Web research and internal documents are shared; only the prompt and report format change.
 - **Small extra scope.** One pipeline, one extra LLM step and one extra output (roughly 15 to 20% more work).
@@ -61,7 +61,7 @@ Today the steps from "this is annoying" → research → compliance check → pr
 
 ### Why n8n is primary
 
-"Fix My Process" is an ops workflow: intake from several entry points, two readers, human review routed to department channels, logging, error handling and status lookup. The flow is mostly linear with a few branches, and n8n covers each step with a ready node (triggers, IF and Switch, Slack send and wait, Airtable, an error workflow). This is the "ops thinking" the course asks for. LangGraph is secondary for now because no MVP step needs reasoning that loops back and remembers state; it comes in later only as a small Python service behind an HTTP Request node. Using both stacks as equal requirements in the MVP would be over-engineering, which the course names as a red flag.
+"Fix My Process" is an ops workflow: intake from several entry points, two readers, human review by the AI Governance Board, logging, error handling and status lookup.  The flow is mostly linear with a few branches, and n8n covers each step with a ready node (triggers, IF and Switch, Slack send and wait, Airtable, an error workflow). This is the "ops thinking" the course asks for. LangGraph is secondary for now because no MVP step needs reasoning that loops back and remembers state; it comes in later only as a small Python service behind an HTTP Request node. Using both stacks as equal requirements in the MVP would be over-engineering, which the course names as a red flag.
 
 ### When LangGraph comes in
 
@@ -69,7 +69,7 @@ Today the steps from "this is annoying" → research → compliance check → pr
 |---|---|---|
 | Intake → validation → research → reports → response | ✅ Yes | No |
 | Route by green / amber / red | ✅ Yes (Switch) | No |
-| Send edge cases to a human in the department channel | ✅ Yes (review branch, Slack send and wait) | No |
+| Send edge cases to the AI Governance Board | ✅ Yes (review branch, Slack send and wait) | No |
 | Retry a failed API call | ✅ Yes (Retry On Fail) | No |
 | Look up status by reference code | ✅ Yes (Airtable search) | No |
 | Compliance sends the flow back to research: "tool not approved, find an approved alternative, re-check" | Not cleanly | ⚠️ Yes (GTM sprint) |
@@ -96,7 +96,7 @@ If LangGraph is added, n8n still owns intake, logging, review, errors and the re
 | n8n workflow | Starts when | What it does |
 |---|---|---|
 | **Main workflow** (one canvas) | An employee submits a problem | Steps 1 to 7 above. Check status and feedback read and update the same Airtable row |
-| ↳ Review branch | An edge case is found | Sends it to the department's Slack channel, waits for the decision, updates Airtable |
+| ↳ Review branch | An edge case is found | Sends it to the AI Governance Board in #ai-governance-review, waits for the decision, updates Airtable |
 | ↳ Document upload | The CPO / AI enablement team uploads a PDF | Extract text → chunk → embed (Cohere) → Pinecone |
 | **Error workflow** (separate) | Any step fails | Logs the error in Airtable and alerts the owner in Slack |
 
@@ -105,13 +105,13 @@ If LangGraph is added, n8n still owns intake, logging, review, errors and the re
 | Tool | Role |
 |---|---|
 | **n8n (self-hosted)** | All business logic, all workflows |
-| **Gradio on Render** | UI: Form, Chat, Check status. n8n URL  |
+| **Gradio on Render** | UI: Form, Chat, Check status. n8n URL from `.env` (`N8N_WEBHOOK_URL`) |
 | **OpenAI gpt-4o-mini** | Search queries, compliance class, Reports A and B, groundedness check |
-| **Tavily · GNews · OpenAlex** | External research |
+| **Tavily · GNews · OpenAlex** | External research (see section 3) |
 | **Pinecone** | Vector store for internal PDFs, one namespace per type: policy, approved tools, works council, past projects |
 | **Cohere** | Embeddings and rerank (relevance score for the quality gate) |
 | **Airtable** | Submissions table and Errors table |
-| **Slack** | Human review in department channels, error alerts |
+| **Slack** | AI Governance Board review (#ai-governance-review), error alerts |
 | **Not in MVP** | LangGraph, Gmail, Google Drive, Telegram, Notion |
 
 ---
@@ -130,7 +130,7 @@ Each API has one job in the workflow. One call per API per submission, so free t
 
 ### Rate limits and error handling
 
-Free tiers mean limits, so every API node has **Retry On Fail**, and failures (for example a 429 "limit reached") are logged in the Airtable Errors table with a Slack alert. Keys live in n8n credentials only, never in Gradio. Other integrations (OpenAI, Cohere, Pinecone, Slack, Airtable) are also key-based APIs and are covered.
+Free tiers mean limits, so every API node has **Retry On Fail**, and failures (for example a 429 "limit reached") are logged in the Airtable Errors table with a Slack alert. Keys live in n8n credentials only, never in Gradio. Other integrations (OpenAI, Cohere, Pinecone, Slack, Airtable) are also key-based APIs and are covered in section 2.
 
 ---
 
@@ -144,7 +144,7 @@ Free tiers mean limits, so every API node has **Retry On Fail**, and failures (f
 | 2 | **Evidence and size:** research numbers behind the problem and the fix (OpenAlex) | CPO | MVP |
 | 3 | **Internal match:** which internal tool or approved method fixes it (RAG over internal PDFs), shown first | Employee | MVP |
 | 4 | **External option:** an approved external tool, or one flagged "not on the approved list" | Employee | MVP |
-| 5 | **Compliance status:** AI policy, works council, GDPR, EU AI Act → green / amber / red, with "under review by [department]" when escalated | Both | MVP |
+| 5 | **Compliance status:** AI policy, works council, GDPR, EU AI Act → green / amber / red, with "under review by the AI Governance Board" when escalated | Both | MVP |
 | 6 | **Confidence and sources** on every recommendation; below the threshold the report says it is not sure | Both | MVP |
 | 7 | **"No internal solution exists" flag** stored in Airtable | CPO | MVP (field only) |
 | 8 | **Research loop:** re-query when evidence is weak | Both | GTM sprint |
