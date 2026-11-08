@@ -36,7 +36,6 @@ A tool that turns an employee's process problem into a researched, compliance-ch
 - Store names, login IDs or emails anywhere
 - Expand into the Won't list (LangGraph, Slack entry point, research loop, PII redaction, Notion) without agreement
 - Invent facts, figures, prices or tool features
-- Work directly on `main`, or run `git commit` / `git push` (print the commands instead)
 - Use em dashes in docs
 ## How we use agents
 - One card at a time; paste the card ID and name into the prompt
