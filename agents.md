@@ -38,7 +38,7 @@ A tool that turns an employee's process problem into a researched, compliance-ch
 - Invent facts, figures, prices or tool features
 - Use em dashes in docs
 ## How we use agents
-- One card at a time; paste the card ID and name into the prompt
-- Point the agent at this file first: "Read agents.md, then do card 2.1"
+- One card at a time
+- Point the agent at this file first: "Read agents.md, then do "
 - Work in `workbench_<card>.ipynb` (git-ignored): check branch, back up, PASS/FAIL checks, undo cell
 - Review the agent's changes before committing
