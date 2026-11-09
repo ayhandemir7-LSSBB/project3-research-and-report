@@ -281,8 +281,8 @@
         "text": "=Reference: {{ $json.reference_code }}\nDepartment: {{ $json.department }}\nFrequency: {{ $json.frequency }}\nCurrent tools: {{ $json.current_tools }}\nProblem: {{ $json.problem }}",
         "hasOutputParser": true,
         "options": {
-          "systemMessage": "You are the research and compliance agent of \"Fix My Process\" at Kleinanzeigen. All internal documents are fictional demo data.\n\nWork in this order:\n1. In your FIRST step, call all 7 tools at the same time, each exactly once. Do not call any tool a second time unless its result was empty\n   - Search Approved Tools: internal tools first, their steps and owners, approved and not approved external tools\n   - Search Policy: data classes D1-D5 and rules G1-G5, A1-A7, R1-R7\n   - Search Works Council: information duty, co-determination, pre-approved uses\n   - Search Past Projects: similar projects P-01 to P-09\n   - Tavily Web Search: how other companies solve this problem\n   - GNews Search: recent news on AI tools for this problem (3 to 5 English keywords)\n   - OpenAlex Research: research papers on the topic (5to 7 English keywords)\nException: if a tool returns an error, call it once more with the same input. If it fails again, continue with the other tools and do not invent results for the failed one.\n2. Internal first: choose the internal tool that fits best AND is allowed for the data in the request (see \"Max data class\" in the Approved Tools List). CVs, customer messages, user IDs and names are D4 personal data. If no tool fits within its data class, set no_internal_solution to true and internal_tool to \"None\".\n3. External alternative: only one of the approved external tools in Approved Tools List section 3 (Microsoft 365 Copilot, DeepL Pro, Miro AI, Atlassian Intelligence, GitHub Copilot Business, Grammarly Business), within its data class. None of them is approved for D4 data: if the request involves customer messages, tickets, CVs or other D4 data, external_tool is \"None\". Pilot tools such as Zapier are not approved external tools. If nothing fits, \"None\". Never recommend a not approved tool, an article or a company.\n4. Compliance: check the Policy Annex A questions in order. Cite a rule only if the request clearly meets its criteria; seeing a rule in the search results is not enough.\n   - Any R rule applies: red, cite only R rules.\n   - Else any A rule applies: amber, cite only A rules.\n   - Else green, cite the G rules that apply (G1 to G5).\n   R2 and R3 are about employees; job candidates and customers are not employees. \n   Use A7 only when sources conflict or a tool result is missing. Use A7 only when sources conflict or a tool result is missing.\n5. Use only facts from the tool results. Never invent tools, steps, numbers, findings or URLs. OpenAlex papers are related research: name title and year only.\n6. Never repeat personal names from the request.",
-          "maxIterations": 17,
+          "systemMessage": "You are the research and compliance agent of \"Fix My Process\" at Kleinanzeigen. All internal documents are fictional demo data.\n\nWork in this order:\n1. In your FIRST step, call all 7 tools at the same time, each exactly once. After their results arrive, do not call any tool again: write the final JSON. Never call Search Approved Tools, Search Policy, Search Works Council or Search Past Projects a second time, even if the result is empty or an error.\n   - Search Approved Tools: internal tools first, their steps and owners, approved and not approved external tools\n   - Search Policy: data classes D1-D5 and rules G1-G5, A1-A7, R1-R7\n   - Search Works Council: information duty, co-determination, pre-approved uses\n   - Search Past Projects: similar projects P-01 to P-09\n   - Tavily Web Search: how other companies solve this problem\n   - GNews Search: recent news on AI tools for this problem (3 to 5 English keywords)\n   - OpenAlex Research: research papers on the topic (5to 7 English keywords)\n Exception: if Tavily, GNews or OpenAlex returns an error, call it once more with the same input. If any tool fails, continue with the other tools and do not invent results for the failed one.\n2. Internal first: choose the internal tool that fits best AND is allowed for the data in the request (see \"Max data class\" in the Approved Tools List). CVs, customer messages, user IDs and names are D4 personal data. If no tool fits within its data class, set no_internal_solution to true and internal_tool to \"None\".\n3. External alternative: only one of the approved external tools in Approved Tools List section 3 (Microsoft 365 Copilot, DeepL Pro, Miro AI, Atlassian Intelligence, GitHub Copilot Business, Grammarly Business), within its data class. None of them is approved for D4 data: if the request involves customer messages, tickets, CVs or other D4 data, external_tool is \"None\". Pilot tools such as Zapier are not approved external tools. If nothing fits, \"None\". Never recommend a not approved tool, an article or a company.\n4. Compliance: check the Policy Annex A questions in order. Cite a rule only if the request clearly meets its criteria; seeing a rule in the search results is not enough.\n   - Any R rule applies: red, cite only R rules.\n   - Else any A rule applies: amber, cite only A rules.\n   - Else green, cite the G rules that apply (G1 to G5).\n   R2 and R3 are about employees; job candidates and customers are not employees. \n   Use A7 only when sources conflict or a tool result is missing. Use A7 only when sources conflict or a tool result is missing.\n5. Use only facts from the tool results. Never invent tools, steps, numbers, findings or URLs. OpenAlex papers are related research: name title and year only.\n6. Never repeat personal names from the request.",
+          "maxIterations": 10,
           "returnIntermediateSteps": true,
           "enableStreaming": false
         }
@@ -296,8 +296,8 @@
         2944
       ],
       "retryOnFail": true,
-      "waitBetweenTries": 5000,
-      "maxTries": 5,
+      "waitBetweenTries": 3000,
+      "maxTries": 3,
       "onError": "continueRegularOutput"
     },
     {
@@ -321,7 +321,7 @@
         3136
       ],
       "retryOnFail": true,
-      "waitBetweenTries": 3000,
+      "waitBetweenTries": 2000,
       "credentials": {
         "openAiApi": {
           "id": "mTPrW5zI037tiOyC",
@@ -347,16 +347,19 @@
     {
       "parameters": {
         "schemaType": "manual",
-        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"problem_summary\": {\n      \"type\": \"string\",\n      \"description\": \"One sentence, no names\"\n    },\n    \"compliance_level\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"green\",\n        \"amber\",\n        \"red\"\n      ]\n    },\n    \"policy_rules\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Rule IDs such as G1, A5, R3\"\n    },\n    \"compliance_reason\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences with the rule IDs\"\n    },\n    \"internal_tool\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"KAi Assist\",\n        \"Ticket Lens\",\n        \"FlowMate\",\n        \"Knowledge Finder\",\n        \"Insight Desk\",\n        \"None\"\n      ],\n      \"description\": \"Best internal tool from the Approved Tools List section 1, or None\"\n    },\n    \"internal_steps\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Steps from the Approved Tools List\"\n    },\n    \"sample_request\": {\n      \"type\": \"string\",\n      \"description\": \"A request the employee can copy into the tool\"\n    },\n    \"tool_owner\": {\n      \"type\": \"string\",\n      \"description\": \"Owner of the internal tool from the Approved Tools List\"\n    },\n    \"external_tool\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Microsoft 365 Copilot\",\n        \"DeepL Pro\",\n        \"Miro AI\",\n        \"Atlassian Intelligence\",\n        \"GitHub Copilot Business\",\n        \"Grammarly Business\",\n        \"None\"\n      ],\n      \"description\": \"Approved external tool from the Approved Tools List section 3, or None\"\n    },\n    \"no_internal_solution\": {\n      \"type\": \"boolean\"\n    },\n    \"related_project\": {\n      \"type\": \"string\",\n      \"description\": \"Most similar past project ID and name, or None\"\n    },\n    \"known_issues\": {\n      \"type\": \"string\",\n      \"description\": \"Known issues or adoption problems of the internal tool\"\n    },\n    \"how_others_solve_it\": {\n      \"type\": \"string\",\n      \"description\": \"Two or three sentences from Tavily and GNews\"\n    },\n    \"related_research\": {\n      \"type\": \"string\",\n      \"description\": \"OpenAlex papers by title and year only\"\n    },\n    \"internal_sources\": {\n      \"type\": \"array\",\n      \"description\": \"Internal sources you used\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"doc_id\": {\n            \"type\": \"string\",\n            \"description\": \"e.g. KA-AI-TOOLS-002\"\n          },\n          \"section\": {\n            \"type\": \"string\",\n            \"description\": \"Section title from the [doc_id \\u00b7 section] prefix\"\n          },\n          \"quote\": {\n            \"type\": \"string\",\n            \"description\": \"Short quote copied from the result\"\n          }\n        },\n        \"required\": [\n          \"doc_id\",\n          \"section\",\n          \"quote\"\n        ]\n      }\n    },\n    \"external_sources\": {\n      \"type\": \"array\",\n      \"description\": \"Web, news and paper sources you used, URLs copied from the results\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"title\": {\n            \"type\": \"string\"\n          },\n          \"url\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"title\",\n          \"url\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"problem_summary\",\n    \"compliance_level\",\n    \"policy_rules\",\n    \"compliance_reason\",\n    \"internal_tool\",\n    \"internal_steps\",\n    \"sample_request\",\n    \"tool_owner\",\n    \"external_tool\",\n    \"no_internal_solution\",\n    \"related_project\",\n    \"known_issues\",\n    \"how_others_solve_it\",\n    \"related_research\",\n    \"internal_sources\",\n    \"external_sources\"\n  ]\n}"
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"problem_summary\": {\n      \"type\": \"string\",\n      \"description\": \"One sentence, no names\"\n    },\n    \"compliance_level\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"green\",\n        \"amber\",\n        \"red\"\n      ]\n    },\n    \"policy_rules\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Rule IDs such as G1, A5, R3\"\n    },\n    \"compliance_reason\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences with the rule IDs\"\n    },\n    \"internal_tool\": {\n      \"type\": \"string\",\n      \"description\": \"Best internal tool from the Approved Tools List section 1, or None\"\n    },\n    \"internal_steps\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Steps from the Approved Tools List\"\n    },\n    \"sample_request\": {\n      \"type\": \"string\",\n      \"description\": \"A request the employee can copy into the tool\"\n    },\n    \"tool_owner\": {\n      \"type\": \"string\",\n      \"description\": \"Owner of the internal tool from the Approved Tools List\"\n    },\n    \"external_tool\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Microsoft 365 Copilot\",\n        \"DeepL Pro\",\n        \"Miro AI\",\n        \"Atlassian Intelligence\",\n        \"GitHub Copilot Business\",\n        \"Grammarly Business\",\n        \"None\"\n      ],\n      \"description\": \"Approved external tool from the Approved Tools List section 3, or None\"\n    },\n    \"no_internal_solution\": {\n      \"type\": \"boolean\"\n    },\n    \"related_project\": {\n      \"type\": \"string\",\n      \"description\": \"Most similar past project ID and name, or None\"\n    },\n    \"known_issues\": {\n      \"type\": \"string\",\n      \"description\": \"Known issues or adoption problems of the internal tool\"\n    },\n    \"how_others_solve_it\": {\n      \"type\": \"string\",\n      \"description\": \"Two or three sentences from Tavily and GNews\"\n    },\n    \"related_research\": {\n      \"type\": \"string\",\n      \"description\": \"OpenAlex papers by title and year only\"\n    },\n    \"internal_sources\": {\n      \"type\": \"array\",\n      \"description\": \"Internal sources you used\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"doc_id\": {\n            \"type\": \"string\",\n            \"description\": \"e.g. KA-AI-TOOLS-002\"\n          },\n          \"section\": {\n            \"type\": \"string\",\n            \"description\": \"Section title from the [doc_id \\u00b7 section] prefix\"\n          },\n          \"quote\": {\n            \"type\": \"string\",\n            \"description\": \"Short quote copied from the result\"\n          }\n        },\n        \"required\": [\n          \"doc_id\",\n          \"section\",\n          \"quote\"\n        ]\n      }\n    },\n    \"external_sources\": {\n      \"type\": \"array\",\n      \"description\": \"Web, news and paper sources you used, URLs copied from the results\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"title\": {\n            \"type\": \"string\"\n          },\n          \"url\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"title\",\n          \"url\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"problem_summary\",\n    \"compliance_level\",\n    \"policy_rules\",\n    \"compliance_reason\",\n    \"internal_tool\",\n    \"internal_steps\",\n    \"sample_request\",\n    \"tool_owner\",\n    \"external_tool\",\n    \"no_internal_solution\",\n    \"related_project\",\n    \"known_issues\",\n    \"how_others_solve_it\",\n    \"related_research\",\n    \"internal_sources\",\n    \"external_sources\"\n  ]\n}",
+        "autoFix": true
       },
       "id": "6dddf7fc-e232-4e07-810e-e18de183bd00",
       "name": "Research Output",
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        21552,
-        3136
-      ]
+        21472,
+        3104
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 2000
     },
     {
       "parameters": {
@@ -392,50 +395,6 @@
         "httpHeaderAuth": {
           "id": "JCfdX52txO5HtJOl",
           "name": "Tavily API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "toolDescription": "Recent news articles about AI tools for this kind of process problem.",
-        "url": "https://gnews.io/api/v4/search",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpQueryAuth",
-        "sendQuery": true,
-        "queryParameters": {
-          "parameters": [
-            {
-              "name": "q",
-              "value": "={{ $fromAI('keywords', '2 to 4 English keywords, no quotes', 'string') }}"
-            },
-            {
-              "name": "lang",
-              "value": "en"
-            },
-            {
-              "name": "max",
-              "value": "5"
-            }
-          ]
-        },
-        "options": {},
-        "optimizeResponse": true,
-        "dataField": "articles",
-        "fieldsToInclude": "selected",
-        "fields": "title,description,url,publishedAt"
-      },
-      "id": "0cf51903-cb9c-45ee-ad02-17a51653f2f6",
-      "name": "GNews Search",
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.2,
-      "position": [
-        21408,
-        3504
-      ],
-      "credentials": {
-        "httpQueryAuth": {
-          "id": "VqbLqNxN6CYIybpD",
-          "name": "GNews API"
         }
       }
     },
@@ -554,7 +513,6 @@
           "cachedResultName": "fix-my-process-kb"
         },
         "topK": 8,
-        "useReranker": true,
         "options": {
           "pineconeNamespace": "works_council"
         }
@@ -585,7 +543,6 @@
           "cachedResultName": "fix-my-process-kb"
         },
         "topK": 8,
-        "useReranker": true,
         "options": {
           "pineconeNamespace": "past_projects"
         }
@@ -615,14 +572,15 @@
         21808,
         3920
       ],
-      "retryOnFail": true,
-      "waitBetweenTries": 5000,
+      "retryOnFail": false,
+      "waitBetweenTries": 3000,
       "credentials": {
         "cohereApi": {
           "id": "uEcJkCMBl5hBOdlP",
           "name": "CohereApi NEW Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -637,7 +595,10 @@
       "position": [
         21696,
         2944
-      ]
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -656,8 +617,8 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
       "typeVersion": 1.2,
       "position": [
-        21696,
-        3136
+        21728,
+        3200
       ],
       "retryOnFail": true,
       "waitBetweenTries": 3000,
@@ -681,7 +642,10 @@
       "position": [
         21840,
         3136
-      ]
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 1000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -710,7 +674,8 @@
           "id": "uEcJkCMBl5hBOdlP",
           "name": "CohereApi NEW Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -2019,6 +1984,50 @@
         }
       },
       "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Recent news articles about AI tools for this kind of process problem.",
+        "url": "https://gnews.io/api/v4/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $fromAI('keywords', '2 to 4 English keywords, no quotes', 'string') }}"
+            },
+            {
+              "name": "lang",
+              "value": "en"
+            },
+            {
+              "name": "max",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {},
+        "optimizeResponse": true,
+        "dataField": "articles",
+        "fieldsToInclude": "selected",
+        "fields": "title,description,url,publishedAt"
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [
+        21424,
+        3504
+      ],
+      "id": "8ba3b4cd-7318-44ff-978a-5b2197c2d0d5",
+      "name": "GNews Search",
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "7eFeYBm8lmR0vrlX",
+          "name": "GNews New  apikey"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -2085,6 +2094,11 @@
             "node": "Research Agent",
             "type": "ai_languageModel",
             "index": 0
+          },
+          {
+            "node": "Research Output",
+            "type": "ai_languageModel",
+            "index": 0
           }
         ]
       ]
@@ -2112,17 +2126,6 @@
       ]
     },
     "Tavily Web Search": {
-      "ai_tool": [
-        [
-          {
-            "node": "Research Agent",
-            "type": "ai_tool",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "GNews Search": {
       "ai_tool": [
         [
           {
@@ -2192,22 +2195,12 @@
       "ai_reranker": [
         [
           {
-            "node": "Search Approved Tools",
-            "type": "ai_reranker",
-            "index": 0
-          },
-          {
             "node": "Search Policy",
             "type": "ai_reranker",
             "index": 0
           },
           {
-            "node": "Search Works Council",
-            "type": "ai_reranker",
-            "index": 0
-          },
-          {
-            "node": "Search Past Projects",
+            "node": "Search Approved Tools",
             "type": "ai_reranker",
             "index": 0
           }
@@ -2410,11 +2403,6 @@
       "ai_embedding": [
         [
           {
-            "node": "Search Approved Tools",
-            "type": "ai_embedding",
-            "index": 0
-          },
-          {
             "node": "Search Policy",
             "type": "ai_embedding",
             "index": 0
@@ -2426,6 +2414,11 @@
           },
           {
             "node": "Search Past Projects",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Search Approved Tools",
             "type": "ai_embedding",
             "index": 0
           }
@@ -2519,6 +2512,17 @@
           }
         ]
       ]
+    },
+    "GNews Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -2530,7 +2534,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "50b351d6-2075-4e93-b430-81ac0e6ac3a5",
+  "versionId": "cfa674f7-889e-408d-978e-ab9d934acc6d",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "49b42c0051ee1c04693c425c4d57eeb1072531f55d1515f0d9aeb5a5977f030a"
