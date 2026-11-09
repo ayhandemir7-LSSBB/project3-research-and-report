@@ -76,7 +76,7 @@ def big_loader(run_id):
         f'{_captions(steps)}</div></div>'
         f'<div class="fmp-bar"><i style="--t:{total:.0f}s"></i></div>'
         f'<div class="fmp-grid">{"".join(cols)}</div>'
-        f'<div class="fmp-big-foot">Usually about 30 seconds. Please keep this tab open.</div></div>')
+        f'<div class="fmp-big-foot">Usually about 45 seconds. Please keep this tab open.</div></div>')
 
 
 def thin_loader(run_id):
@@ -124,7 +124,7 @@ GUIDE_FORM = _guide("👉 What to do", [
     "Choose your <b>department</b> (required).",
     "Describe <b>what is slow, manual or unclear</b> and why it matters (required).",
     "Optional: add the tools you use today and how often.",
-    "Click <b>Find my fix</b> and wait about 30 seconds.",
+    "Click <b>Find my fix</b> and wait about 45 seconds.",
     "Read your report and <b>send feedback</b> at the end.",
 ], "💾 Save your reference code (FMP-…) to check the status later.")
 
