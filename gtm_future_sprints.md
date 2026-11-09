@@ -16,7 +16,7 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 - **Quality gate:** Cohere relevance score + LLM groundedness judge + code checks (known tools, document IDs, URLs found in the search results, valid rule IDs). Confidence High (75+), Medium (40-74) or Low (below 40), shown as a banner.
 - **Logging:** every submission, review decision, feedback ("will you use the internal tool?" + reason) and error in Airtable; errors also alert in Slack.
 - **Hand-off and errors:** a Report B page in Notion and a notice in #ai-governance-review for every case; hard failures go to the Error Handler (Airtable Errors table + Slack alert).
-- **Calibration:** 8 runs on 2 fixed inputs: compliance level correct in 6 of 6 runs after the prompt fixes, rubric score 25% → 75%. Confidence shows source support, not correctness (r = 0.41 with the rubric).
+- **Calibration:** 8 runs on 2 fixed inputs: compliance level correct in 6 of 6 runs after the prompt fixes, rubric score 25% → 83%. Confidence shows source support, not correctness (r = 0.38 with the rubric). A 15-case study (13 cases, 19 runs) then scored 79% on the rubric (r = 0.35) and led to 2 more fixes; see `confidence_calibration.md`.
 
 ---
 
@@ -85,8 +85,8 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 | Async response: return the reference code at once and let Check status show the report | Fix (only if timing tests fail) | Webhook or Render timeouts on long runs |
 | Access control for the app and the admin upload form | Feature | Nothing is password protected in the MVP |
 | Cache API results for repeated questions | Improvement | Saves free-tier quota and time |
-| Full calibration: 15-20 labelled cases, 3 runs each | Improvement | Set the 75 / 40 bands from accuracy and repeatability, not judgement |
-| Deterministic Quality Gate checks (5 checks, see `confidence_calibration.md`) | Improvement | Penalise rules that don't match the level or the case, data-class breaches and unlisted tools; correlation with correctness 0.41 → 0.73 on the test runs |
+| Rescore the 15-case study after the fixes, including the 2 skipped cases (R04, R05), and set the 75 / 40 bands | Improvement | The 19-run study gives the before-fix baseline; the bands should come from accuracy and repeatability after the Quality Gate checks, not judgement |
+| Deterministic Quality Gate checks: level / rule consistency and external tool data class | Improvement | Penalise rules from another level (for example G5 in an amber case) and external tools used above their data class (for example Microsoft 365 Copilot for customer data). These errors appeared in 4 of 19 runs of the 15-case study and were not penalised. The unlisted-tool check is done: the Research Output schema now allows only the listed tools |
 | `failed_tools` field in Airtable | Improvement | Log which research tools failed inside the agent |
 | Approved tool names read from the tools list | Improvement | The 6 external tool names are hardcoded in the agent prompt and must be updated by hand |
 | German and English reports | Feature | Kleinanzeigen works in both languages |
