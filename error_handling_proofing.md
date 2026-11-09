@@ -1,8 +1,8 @@
 # Error Handling Proofing
 
-*Fix My Process · n8n self-hosted 2.13.2 · tested 9 Nov 2026 · all internal data is synthetic*
+*Fix My Process · n8n self-hosted 2.13.2 · tested 10 Nov 2026 · all internal data is synthetic*
 
-Screenshots for the tests are in the `screenshots/` folder.
+Screenshots for the tests are in the `error_screenshots/` folder (section 6).
 
 ## 1. Summary
 
@@ -56,9 +56,8 @@ flowchart LR
    - The real error message and the reference code are now saved.
    - Slack set to Continue on error.
    - Retries added.
-2. **Airtable Errors table:** new field `execution_url`.
 3. **Slack:** app invited to #fix-my-process-alerts.
-4. **Main workflow:** the retry and On Error settings in section 3.
+4. **Main workflow:** the retry and On Error settings in sections.
 5. **Research Agent prompt:** retry a failed tool once, then continue.
 
 ## 5. Test results
@@ -85,20 +84,26 @@ flowchart LR
 | 12 | Check status: unknown code | `FMP-0000` entered in Check status | App shows "not found"; no error | PASS |
 | 13 | Error Handler itself | Alert channel set to `#fix-my-process-alertsx`, then test 8 repeated | No Slack alert, but the Errors row is still created | PASS |
 
-## 6. Error log evidence
+## 6. Evidence (`error_screenshots/`)
 
-The logged rows from these tests are in the `screenshots/` folder (error_logs screenshot). Each row shows the execution ID, time, workflow, failed node, error message, reference code and execution link.
+| File | Shows | Tests |
+|---|---|---|
+| `error_logs.png`, `error_logs_2.png` | Airtable Errors rows: execution ID, time, workflow, failed node, error message, reference code, execution link | 5 to 9, 11, 13 |
+| `slack_channel.png` | Alerts in #fix-my-process-alerts | 5 to 9, 11 |
+| `env error.png` | App message for an `.env` setting error | 1, 2 |
+| `timeout error.png` | App timeout message | 3 |
+| `wrong fields error.png` | Airtable "unknown field" error at Log Submission | 9 |
+| `notion creation error.png` | Slack notice when the Notion page is not created | 10 |
+| `Error Proof - Unknow Reference Code.png` | Check status with an unknown code | 12 |
 
 ## 7. Known gaps (accepted for the MVP)
 
 | Gap | Why it is accepted | Next step |
 |---|---|---|
 | Entry failures (wrong secret, wrong URL) leave no Errors row | n8n rejects the request before a run starts; it is a setup error, not a workflow failure | None |
-| After a timeout the employee has no reference code | The run still finishes and is logged | Backlog: async reply (code first, report in Check status) |
-| Tool failures are not logged | The agent retries once and continues; the failure is visible in the execution's intermediate steps | Backlog: `failed_tools` field in the research output |
+| After a timeout the employee has no reference code | The run still finishes and is logged | Backlog: async reply (code first, report in Check status)  |
 | A failed Notion page has no Errors row | The Slack notice reports it and Report B is in Airtable | None |
-| If both Slack and Airtable fail in the Error Handler, nothing is logged | Only the n8n execution list shows it | None |
-| A persistent Research Agent failure reruns all tools up to 3 times | Kept at 3 tries by choice; costs time and Cohere calls | Review in calibration |
+| A persistent Research Agent failure reruns all tools up to 3 times | Kept at 3 tries by choice; costs time and Cohere calls | None |
 
 ## 8. How to handle an error (runbook)
 
@@ -106,9 +111,3 @@ The logged rows from these tests are in the `screenshots/` folder (error_logs sc
 2. Open the execution link and check the failed node's input and output.
 3. Fix the cause and run one normal case.
 4. In the Airtable **Errors** table, tick `resolved` and write the `resolution_note`.
-
-## 9. Ready to say (Q&A)
-
-- "Every hard failure lands in Airtable and Slack within seconds, with the reference code, the failed node and a link to the run."
-- "Failures after the reply, like Notion or the Slack notice, never cost the employee their answer."
-- "I broke 13 failure points on purpose and checked the trail of each one; the evidence is in this file and the screenshots folder."

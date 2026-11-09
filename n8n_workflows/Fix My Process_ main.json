@@ -1,0 +1,2540 @@
+{
+  "name": "Fix My Process: main",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Fix My Process: main flow (happy path 9 nodes)\n1 Intake (Gradio form or chat, n8n form or chat as backup) → Normalize → 2+3 Research Agent (Tavily, GNews, OpenAlex + 4 Pinecone searches: OpenAI embeddings, Cohere rerank) → 4 compliance (inside the agent output) → 5 Write Reports A + B → 6 Quality gate (Cohere rerank score + groundedness, threshold 85) → 7 Airtable + reply. Amber and red go to the AI Governance Board in Slack after the reply, so the user never waits.",
+        "height": 1492,
+        "width": 3540,
+        "color": 7
+      },
+      "id": "99b6fe93-a1d1-435b-a99a-9f399127c2ec",
+      "name": "Note: Main flow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20672,
+        2592
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Check status and feedback\nGradio sends `reference_code` (FMP-xxxx). Status reads the Submissions row, feedback updates the same row. No LLM calls.",
+        "height": 460,
+        "width": 760,
+        "color": 4
+      },
+      "id": "dc8f0b75-ffd8-4551-889f-1c857fdc4e84",
+      "name": "Note: Status and feedback",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        22080,
+        1856
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "form",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ae1ac41e-9884-413d-b4e0-be20ecbec1ad",
+      "name": "App Form Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        20736,
+        2704
+      ],
+      "webhookId": "0d7a4576-2562-52ec-961d-c81a2b33b38e",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xob6RnPfkJhoFMFH",
+          "name": "FMP webhook secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "17dcdc7c-fd5b-498d-8c09-2fec9c216e4e",
+      "name": "App Chat Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        20736,
+        2864
+      ],
+      "webhookId": "275fd98e-157b-5808-9954-6e2e5f8a18a3",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xob6RnPfkJhoFMFH",
+          "name": "FMP webhook secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "path": "d9630b9a-afd9-4c5f-a37f-778d4206f822",
+        "formTitle": "Fix My Process",
+        "formDescription": "Describe the process, not the people. Do not include names.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Department",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Customer Service"
+                  },
+                  {
+                    "option": "Operations"
+                  },
+                  {
+                    "option": "Trust and Safety"
+                  },
+                  {
+                    "option": "Sales Ops"
+                  },
+                  {
+                    "option": "BI and Finance"
+                  },
+                  {
+                    "option": "IT"
+                  },
+                  {
+                    "option": "Internal Comms"
+                  },
+                  {
+                    "option": "Other"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Problem",
+              "fieldType": "textarea",
+              "placeholder": "What is slow, manual or unclear?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Current tools",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "KAi Assist"
+                  },
+                  {
+                    "option": "Ticket Lens"
+                  },
+                  {
+                    "option": "FlowMate"
+                  },
+                  {
+                    "option": "Knowledge Finder"
+                  },
+                  {
+                    "option": "Insight Desk"
+                  }
+                ]
+              }
+            },
+            {
+              "fieldLabel": "Frequency",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Daily"
+                  },
+                  {
+                    "option": "Weekly"
+                  },
+                  {
+                    "option": "Monthly"
+                  },
+                  {
+                    "option": "Rarely"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "33259de6-730b-464a-be58-33b817eb0ae4",
+      "name": "n8n Form (backup)",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.1,
+      "position": [
+        20736,
+        3024
+      ],
+      "webhookId": "d9630b9a-afd9-4c5f-a37f-778d4206f822"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "initialMessages": "Hi! Describe one process problem: what is slow or manual, which tools you use and how often. Describe the process, not the people.",
+        "options": {
+          "title": "Fix My Process",
+          "responseMode": "responseNode"
+        }
+      },
+      "id": "8f11bdd3-3ff9-4f76-9636-275030e575c8",
+      "name": "n8n Chat (backup)",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        20736,
+        3184
+      ],
+      "webhookId": "03132323-49b3-5a62-adf7-26a9fe32bdb6"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a1",
+              "name": "reference_code",
+              "type": "string",
+              "value": "=FMP-{{ $execution.id }}"
+            },
+            {
+              "id": "a2",
+              "name": "execution_id",
+              "type": "string",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "id": "a3",
+              "name": "created_at",
+              "type": "string",
+              "value": "={{ $now.toISO() }}"
+            },
+            {
+              "id": "a4",
+              "name": "channel",
+              "type": "string",
+              "value": "={{ $json.body ? (($json.webhookUrl || '').includes('/chat') ? 'gradio_chat' : 'gradio_form') : ($json.chatInput ? 'n8n_chat' : 'n8n_form') }}"
+            },
+            {
+              "id": "a5",
+              "name": "department",
+              "type": "string",
+              "value": "={{ $json.body?.department || $json.Department || 'Not given' }}"
+            },
+            {
+              "id": "a6",
+              "name": "problem",
+              "type": "string",
+              "value": "={{ $json.body?.problem || $json.body?.message || $json.Problem || $json.chatInput || '' }}"
+            },
+            {
+              "id": "a7",
+              "name": "current_tools",
+              "type": "string",
+              "value": "={{ $json.body?.current_tools || $json['Current tools'] || 'Not given' }}"
+            },
+            {
+              "id": "a8",
+              "name": "frequency",
+              "type": "string",
+              "value": "={{ $json.body?.frequency || $json.Frequency || 'Not given' }}"
+            },
+            {
+              "id": "a9",
+              "name": "session_id",
+              "type": "string",
+              "value": "={{ $json.body?.session_id || $json.sessionId || 'FMP-' + $execution.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cfb5fd62-91ff-409f-9fcb-6854515daa11",
+      "name": "Normalize Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        21072,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Reference: {{ $json.reference_code }}\nDepartment: {{ $json.department }}\nFrequency: {{ $json.frequency }}\nCurrent tools: {{ $json.current_tools }}\nProblem: {{ $json.problem }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are the research and compliance agent of \"Fix My Process\" at Kleinanzeigen. All internal documents are fictional demo data.\n\nWork in this order:\n1. In your FIRST step, call all 7 tools at the same time, each exactly once. Do not call any tool a second time unless its result was empty\n   - Search Approved Tools: internal tools first, their steps and owners, approved and not approved external tools\n   - Search Policy: data classes D1-D5 and rules G1-G5, A1-A7, R1-R7\n   - Search Works Council: information duty, co-determination, pre-approved uses\n   - Search Past Projects: similar projects P-01 to P-09\n   - Tavily Web Search: how other companies solve this problem\n   - GNews Search: recent news on AI tools for this problem (3 to 5 English keywords)\n   - OpenAlex Research: research papers on the topic (5to 7 English keywords)\nException: if a tool returns an error, call it once more with the same input. If it fails again, continue with the other tools and do not invent results for the failed one.\n2. Internal first: choose the internal tool that fits best AND is allowed for the data in the request (see \"Max data class\" in the Approved Tools List). CVs, customer messages, user IDs and names are D4 personal data. If no tool fits within its data class, set no_internal_solution to true and internal_tool to \"None\".\n3. External alternative: only one of the approved external tools in Approved Tools List section 3 (Microsoft 365 Copilot, DeepL Pro, Miro AI, Atlassian Intelligence, GitHub Copilot Business, Grammarly Business), within its data class. Else \"None\". Never recommend a not approved tool, an article or a company.\n4. Compliance: check the Policy Annex A questions in order. Cite a rule only if the request clearly meets its criteria; seeing a rule in the search results is not enough.\n   - Any R rule applies: red, cite only R rules.\n   - Else any A rule applies: amber, cite only A rules.\n   - Else green, cite the G rules that apply (G1 to G5).\n   R2 and R3 are about employees; job candidates and customers are not employees. \n   Use A7 only when sources conflict or a tool result is missing. Use A7 only when sources conflict or a tool result is missing.\n5. Use only facts from the tool results. Never invent tools, steps, numbers, findings or URLs. OpenAlex papers are related research: name title and year only.\n6. Never repeat personal names from the request.",
+          "maxIterations": 17,
+          "returnIntermediateSteps": true,
+          "enableStreaming": false
+        }
+      },
+      "id": "c980b783-fd8a-4de6-9527-1594e4f74615",
+      "name": "Research Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        21280,
+        2944
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 5,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "id": "c0ceeef3-c183-4689-a98c-636dce700e04",
+      "name": "OpenAI Model (agent)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        21088,
+        3136
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "openAiApi": {
+          "id": "mTPrW5zI037tiOyC",
+          "name": "OpenAi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Normalize Request').first().json.session_id }}",
+        "contextWindowLength": 10
+      },
+      "id": "a8868dfc-a07d-4e1d-95c6-ab3428194d32",
+      "name": "Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        21216,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"problem_summary\": {\n      \"type\": \"string\",\n      \"description\": \"One sentence, no names\"\n    },\n    \"compliance_level\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"green\",\n        \"amber\",\n        \"red\"\n      ]\n    },\n    \"policy_rules\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Rule IDs such as G1, A5, R3\"\n    },\n    \"compliance_reason\": {\n      \"type\": \"string\",\n      \"description\": \"One or two sentences with the rule IDs\"\n    },\n    \"internal_tool\": {\n      \"type\": \"string\",\n      \"description\": \"Best internal tool or None\"\n    },\n    \"internal_steps\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Steps from the Approved Tools List\"\n    },\n    \"sample_request\": {\n      \"type\": \"string\",\n      \"description\": \"A request the employee can copy into the tool\"\n    },\n    \"tool_owner\": {\n      \"type\": \"string\",\n      \"description\": \"Owner of the internal tool from the Approved Tools List\"\n    },\n    \"external_tool\": {\n      \"type\": \"string\",\n      \"description\": \"Approved external alternative or None\"\n    },\n    \"no_internal_solution\": {\n      \"type\": \"boolean\"\n    },\n    \"related_project\": {\n      \"type\": \"string\",\n      \"description\": \"Most similar past project ID and name, or None\"\n    },\n    \"known_issues\": {\n      \"type\": \"string\",\n      \"description\": \"Known issues or adoption problems of the internal tool\"\n    },\n    \"how_others_solve_it\": {\n      \"type\": \"string\",\n      \"description\": \"Two or three sentences from Tavily and GNews\"\n    },\n    \"related_research\": {\n      \"type\": \"string\",\n      \"description\": \"OpenAlex papers by title and year only\"\n    },\n    \"internal_sources\": {\n      \"type\": \"array\",\n      \"description\": \"Internal sources you used\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"doc_id\": {\n            \"type\": \"string\",\n            \"description\": \"e.g. KA-AI-TOOLS-002\"\n          },\n          \"section\": {\n            \"type\": \"string\",\n            \"description\": \"Section title from the [doc_id \\u00b7 section] prefix\"\n          },\n          \"quote\": {\n            \"type\": \"string\",\n            \"description\": \"Short quote copied from the result\"\n          }\n        },\n        \"required\": [\n          \"doc_id\",\n          \"section\",\n          \"quote\"\n        ]\n      }\n    },\n    \"external_sources\": {\n      \"type\": \"array\",\n      \"description\": \"Web, news and paper sources you used, URLs copied from the results\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"title\": {\n            \"type\": \"string\"\n          },\n          \"url\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"title\",\n          \"url\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"problem_summary\",\n    \"compliance_level\",\n    \"policy_rules\",\n    \"compliance_reason\",\n    \"internal_tool\",\n    \"internal_steps\",\n    \"sample_request\",\n    \"tool_owner\",\n    \"external_tool\",\n    \"no_internal_solution\",\n    \"related_project\",\n    \"known_issues\",\n    \"how_others_solve_it\",\n    \"related_research\",\n    \"internal_sources\",\n    \"external_sources\"\n  ]\n}"
+      },
+      "id": "6dddf7fc-e232-4e07-810e-e18de183bd00",
+      "name": "Research Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        21552,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "toolDescription": "Web search: how other companies solve this process problem.",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ $fromAI('query', 'Short English web search query about how companies solve this process problem', 'string') }}"
+            }
+          ]
+        },
+        "options": {},
+        "optimizeResponse": true,
+        "dataField": "results",
+        "fieldsToInclude": "selected",
+        "fields": "title,url,content"
+      },
+      "id": "8a2963b4-face-466d-bbad-cc69c9c1ca96",
+      "name": "Tavily Web Search",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        21264,
+        3504
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "JCfdX52txO5HtJOl",
+          "name": "Tavily API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Recent news articles about AI tools for this kind of process problem.",
+        "url": "https://gnews.io/api/v4/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "q",
+              "value": "={{ $fromAI('keywords', '2 to 4 English keywords, no quotes', 'string') }}"
+            },
+            {
+              "name": "lang",
+              "value": "en"
+            },
+            {
+              "name": "max",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {},
+        "optimizeResponse": true,
+        "dataField": "articles",
+        "fieldsToInclude": "selected",
+        "fields": "title,description,url,publishedAt"
+      },
+      "id": "0cf51903-cb9c-45ee-ad02-17a51653f2f6",
+      "name": "GNews Search",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        21408,
+        3504
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "VqbLqNxN6CYIybpD",
+          "name": "GNews API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "Research papers related to the problem and the fix.",
+        "url": "https://api.openalex.org/works",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "search",
+              "value": "={{ $fromAI('keywords', '3 to 6 English keywords', 'string') }}"
+            },
+            {
+              "name": "per-page",
+              "value": "5"
+            },
+            {
+              "name": "select",
+              "value": "display_name,publication_year,doi,cited_by_count"
+            }
+          ]
+        },
+        "options": {},
+        "optimizeResponse": true,
+        "dataField": "results"
+      },
+      "id": "4003a846-a13d-4d8a-9bf2-82c8ae530c63",
+      "name": "OpenAlex Research",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        21104,
+        3504
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "jQJDxSYV0HQ1LUBP",
+          "name": "OpenAlex API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Approved Tools List KA-AI-TOOLS-002: internal tools with steps, owners and adoption, approved and not approved external tools.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "fix-my-process-kb",
+          "mode": "list",
+          "cachedResultName": "fix-my-process-kb"
+        },
+        "topK": 8,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "tools"
+        }
+      },
+      "id": "f99633b7-1b29-4add-b898-5f28de6d4362",
+      "name": "Search Approved Tools",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        21440,
+        3696
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "4h46iHYlNoja0oty",
+          "name": "PineconeApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Internal AI Policy KA-AI-POL-001: data classes D1-D5, rules G1-G5, A1-A7, R1-R7, internal first, review process.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "fix-my-process-kb",
+          "mode": "list",
+          "cachedResultName": "fix-my-process-kb"
+        },
+        "topK": 8,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "policy"
+        }
+      },
+      "id": "8bdaefac-bf3c-4779-a1c8-0eb79ea30e9a",
+      "name": "Search Policy",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        21600,
+        3696
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "4h46iHYlNoja0oty",
+          "name": "PineconeApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Works Council Agreement KA-BV-AI-2026: information duty, co-determination, groups of 5+, pre-approved uses.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "fix-my-process-kb",
+          "mode": "list",
+          "cachedResultName": "fix-my-process-kb"
+        },
+        "topK": 8,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "works_council"
+        }
+      },
+      "id": "91c071b2-de38-4705-8581-6846c3015034",
+      "name": "Search Works Council",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        21760,
+        3696
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "4h46iHYlNoja0oty",
+          "name": "PineconeApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Past AI and Process Projects KA-AI-PROJ-004: P-01 to P-09 with outcomes and patterns.",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "fix-my-process-kb",
+          "mode": "list",
+          "cachedResultName": "fix-my-process-kb"
+        },
+        "topK": 8,
+        "useReranker": true,
+        "options": {
+          "pineconeNamespace": "past_projects"
+        }
+      },
+      "id": "9f78719c-d201-4ec4-becf-69bf1c1da9e2",
+      "name": "Search Past Projects",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        21920,
+        3696
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "4h46iHYlNoja0oty",
+          "name": "PineconeApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "5107fe3f-f1c7-43ec-84c7-6300310eeb6b",
+      "name": "Cohere Reranker",
+      "type": "@n8n/n8n-nodes-langchain.rerankerCohere",
+      "typeVersion": 1,
+      "position": [
+        21808,
+        3920
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "cohereApi": {
+          "id": "NS99s83mm3PWkSiB",
+          "name": "CohereApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You write two reports for the Fix My Process tool at Kleinanzeigen. Use only the request and research below. Never invent tools, steps, numbers, findings or URLs. Never repeat personal names. English, plain words, no em dashesw, no AI Slop.\nIf the external tool is \"None\", the Approved external alternative section says only: \"No approved external tool fits this case. Use the internal option above.\" If you fill it with articles, companies or web results, at the beginning mention there is no tool but these are some informations.\n\nRequest\nDepartment: {{ $('Normalize Request').first().json.department }}\nFrequency: {{ $('Normalize Request').first().json.frequency }}\nCurrent tools: {{ $('Normalize Request').first().json.current_tools }}\nProblem: {{ $('Normalize Request').first().json.problem }}\n\nResearch\n{{ JSON.stringify($('Research Agent').first().json.output) }}\n\nreport_a_body: for the employee, 250 to 350 words, markdown with these sections:\n## Your problem (1 or 2 sentences)\n## Fix it with an internal tool (tool name, numbered steps, a sample request to copy)\n## Approved external alternative\n## How others solve it\n## Is it allowed? (level and rule IDs in plain words)\nIf compliance is red: in \"Fix it\" write \"Not allowed yet\" and give only the safe alternative. If there is no internal tool: say so and point to the approved alternative or the tool request process. \n\nreport_b: for the CPO and AI enablement team, markdown:\n## Executive summary (2 or 3 lines)\nThen a bullet list: Use case, Department, Problem and frequency, Internal answer, External answer, No internal solution (yes or no), Evidence (related research, title and year only), Compliance (level and rule IDs), Effort, Impact, Related past project, Tool owner, Internal tool improvement ideas (each with confidence).\n\ntool_improvement_ideas: 1 to 3 ideas for the internal tool, based on the research results and known issues, each with confidence High, Medium or Low.\nNo header and no sources section in either report: the workflow adds them.",
+        "hasOutputParser": true
+      },
+      "id": "f09540bc-395e-4eeb-94b8-47b68cfa6c7f",
+      "name": "Write Reports A + B",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        21696,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "7bbc361d-4d67-41cf-bea3-fe150f9a886b",
+      "name": "OpenAI Model (reports)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        21696,
+        3136
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "openAiApi": {
+          "id": "mTPrW5zI037tiOyC",
+          "name": "OpenAi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"report_a_body\": {\n      \"type\": \"string\",\n      \"description\": \"Report A markdown, 250 to 350 words\"\n    },\n    \"report_b\": {\n      \"type\": \"string\",\n      \"description\": \"Report B markdown\"\n    },\n    \"use_case_title\": {\n      \"type\": \"string\",\n      \"description\": \"Short use case name\"\n    },\n    \"executive_summary\": {\n      \"type\": \"string\",\n      \"description\": \"2 or 3 lines\"\n    },\n    \"effort\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Low\",\n        \"Medium\",\n        \"High\"\n      ]\n    },\n    \"impact\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Low\",\n        \"Medium\",\n        \"High\"\n      ]\n    },\n    \"tool_improvement_ideas\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"idea\": {\n            \"type\": \"string\"\n          },\n          \"confidence\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"Low\",\n              \"Medium\",\n              \"High\"\n            ]\n          }\n        },\n        \"required\": [\n          \"idea\",\n          \"confidence\"\n        ]\n      }\n    }\n  },\n  \"required\": [\n    \"report_a_body\",\n    \"report_b\",\n    \"use_case_title\",\n    \"executive_summary\",\n    \"effort\",\n    \"impact\",\n    \"tool_improvement_ideas\"\n  ]\n}",
+        "autoFix": true
+      },
+      "id": "b54d3f1e-1998-4fbf-b234-695686dd5851",
+      "name": "Reports Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        21840,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cohere.com/v2/rerank",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "cohereApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'rerank-v3.5', top_n: 3, query: $('Normalize Request').first().json.problem, documents: (($('Research Agent').first().json.output.internal_sources || []).length ? $('Research Agent').first().json.output.internal_sources.map(s => s.section + ': ' + s.quote) : ['No internal evidence found']) }) }}",
+        "options": {}
+      },
+      "id": "2b65b78f-3e7b-4985-8752-71b672d51cc1",
+      "name": "Cohere Rerank Score",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        22048,
+        2944
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "cohereApi": {
+          "id": "NS99s83mm3PWkSiB",
+          "name": "CohereApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Check two reports against the evidence. List the factual claims in the reports (tools, steps, rules, numbers, findings, project names). A claim is supported only if the evidence states it.\ngroundedness = supported claims / all claims, a number from 0 to 1. List up to 5 unsupported claims.\n\nEvidence: raw tool results\n{{ JSON.stringify(($('Research Agent').first().json.intermediateSteps || []).map(s => s.observation)).slice(0, 30000) }}\n\nEvidence: research summary\n{{ JSON.stringify($('Research Agent').first().json.output) }}\n\nReport A\n{{ $('Write Reports A + B').first().json.output.report_a_body }}\n\nReport B\n{{ $('Write Reports A + B').first().json.output.report_b }}",
+        "hasOutputParser": true
+      },
+      "id": "9c9515a4-b5d4-4157-be22-a4419fbf9539",
+      "name": "Groundedness Check",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.6,
+      "position": [
+        22272,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "id"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "id": "d857e1fb-bd36-4afc-ac8c-55e0789e7357",
+      "name": "OpenAI Model (judge)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        22272,
+        3136
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "openAiApi": {
+          "id": "mTPrW5zI037tiOyC",
+          "name": "OpenAi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"groundedness\": {\n      \"type\": \"number\",\n      \"description\": \"0 to 1\"\n    },\n    \"unsupported_claims\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      }\n    }\n  },\n  \"required\": [\n    \"groundedness\",\n    \"unsupported_claims\"\n  ]\n}"
+      },
+      "id": "fc295af2-9086-4b15-9279-a1271d6daeb1",
+      "name": "Judge Output",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        22416,
+        3136
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Quality gate: confidence = rerank + groundedness + code checks; banners, sources, Airtable row\n// Mode: Run Once for All Items. Reads every node by name.\n\n// Settings: starting values, set the final ones in calibration (10-15 test cases)\nconst HIGH = 75;            // 75-100 High: no banner\nconst MEDIUM = 40;          // 40-74 Medium, 0-39 Low\nconst W_RERANK = 0.3;       // weight of Cohere relevance\nconst W_GROUNDED = 0.7;     // weight of judge groundedness\nconst RERANK_SCALE = 1.0;   // e.g. 0.7 if good matches score only 0.5-0.7 (then raw / 0.7, max 1)\nconst INVENTED = 20;        // points off per invented item\nconst MISSING = 10;         // points off per missing item\n\nconst KNOWN_TOOLS = ['KAi Assist', 'Ticket Lens', 'FlowMate', 'Knowledge Finder', 'Insight Desk'];\nconst KNOWN_DOCS = ['KA-AI-POL-001', 'KA-AI-TOOLS-002', 'KA-BV-AI-2026', 'KA-AI-PROJ-004'];\n\nconst request = $('Normalize Request').first().json;\nconst agent = $('Research Agent').first().json;\nconst research = agent.output;\nconst reports = $('Write Reports A + B').first().json.output;\nconst judge = $('Groundedness Check').first().json.output;\nconst rerank = $('Cohere Rerank Score').first().json;\n\n// 1. Scores from 0 to 1\nconst rawRerank = Math.max(0, ...(rerank.results || []).map(r => r.relevance_score));\nconst rerankScore = Math.min(1, rawRerank / RERANK_SCALE);\nconst groundedness = Math.min(1, Math.max(0, Number(judge.groundedness) || 0));\nconst base = 100 * (W_RERANK * rerankScore + W_GROUNDED * groundedness);\n\n// 2. Code checks\nconst internal = research.internal_sources || [];\nconst external = research.external_sources || [];\nconst ruleList = (research.policy_rules || []).map(r => String(r).trim());\nconst rawResults = JSON.stringify((agent.intermediateSteps || []).map(s => s.observation));\nconst tool = String(research.internal_tool || 'None');\n\nconst failed = [];\nif (!/^none/i.test(tool) && !KNOWN_TOOLS.some(t => tool.includes(t))) failed.push(['invented', `unknown internal tool \"${tool}\"`]);\nif (internal.some(s => !KNOWN_DOCS.includes(s.doc_id))) failed.push(['invented', 'unknown document ID']);\nif (external.some(s => !rawResults.includes(String(s.url).replace(/\\/$/, '')))) failed.push(['invented', 'URL not found in the search results']);\nif (ruleList.some(r => !/^(G[1-5]|A[1-7]|R[1-7])$/.test(r))) failed.push(['invented', 'invalid policy rule ID']);\nif (internal.length === 0) failed.push(['missing', 'no internal source']);\nif (external.length === 0) failed.push(['missing', 'no external source']);\nif (ruleList.length === 0) failed.push(['missing', 'no policy rule IDs']);\n\nconst penalty = failed.reduce((sum, [kind]) => sum + (kind === 'invented' ? INVENTED : MISSING), 0);\nconst confidence = Math.max(0, Math.round(base - penalty));\nconst label = confidence >= HIGH ? 'High' : confidence >= MEDIUM ? 'Medium' : 'Low';\nconst lowConfidence = confidence < HIGH;\nconst checkNote = failed.length ? failed.map(([, msg]) => msg).join('; ') : 'all passed';\n\n// 3. Compliance: only red goes to the AI Governance Board\nconst given = String(research.compliance_level || '').toLowerCase();\nconst level = ['green', 'amber', 'red'].includes(given) ? given : 'amber'; // when in doubt: amber\nconst rules = ruleList.join(', ');\nconst needsReview = level === 'red';\n\n// 4. Sources list written by code, so the LLM never writes URLs\nconst sources = [...new Set([\n  ...internal.map(s => `- ${s.doc_id} · ${s.section}`),\n  ...external.map(s => `- ${s.title}: ${s.url}`),\n])].join('\\n');\n\n// 5. Header and banners\nconst header = `# Fix My Process: ${request.reference_code}\\n` +\n  `**Department:** ${request.department} · **Compliance:** ${level.toUpperCase()}` +\n  `${rules ? ' (' + rules + ')' : ''} · **Confidence:** ${label} (${confidence}%)`;\nconst banners = [];\nif (level === 'red') banners.push('> **Blocked:** not allowed until the AI Governance Board approves. Use the safe alternative below.');\nif (needsReview) banners.push(`> **Under review by the AI Governance Board.** See Check status with ${request.reference_code}.`);\nif (label === 'Medium') banners.push(`> **Medium confidence (${confidence}%).** Check the sources before you act.`);\nif (label === 'Low') banners.push(`> **Low confidence (${confidence}%).** This answer may be wrong. Check the sources before acting.`);\n\nconst reportA = [header, ...banners, reports.report_a_body, `## Sources\\n${sources}`].join('\\n\\n');\nconst quality = `## Quality\\nRerank ${rerankScore.toFixed(2)} · Groundedness ${groundedness.toFixed(2)} · Checks: ${checkNote}`;\nconst reportB = [header, reports.report_b, quality, `## Sources\\n${sources}`].join('\\n\\n');\n\n// 6. One Airtable row: keys must match the Submissions column names\nreturn [{\n  json: {\n    reference_code: request.reference_code,\n    execution_id: request.execution_id,\n    created_at: request.created_at,\n    channel: request.channel,\n    department: request.department,\n    problem: request.problem,\n    current_tools: request.current_tools,\n    frequency: request.frequency,\n    status: needsReview ? 'Under review' : 'Completed',\n    compliance_level: level,\n    policy_rules: rules,\n    confidence: confidence,\n    confidence_label: label,\n    rerank_score: Number(rerankScore.toFixed(3)),\n    groundedness_score: Number(groundedness.toFixed(3)),\n    low_confidence: lowConfidence,\n    internal_tool: research.internal_tool,\n    external_tool: research.external_tool,\n    no_internal_solution: research.no_internal_solution === true,\n    use_case_title: reports.use_case_title,\n    executive_summary: reports.executive_summary,\n    effort: reports.effort,\n    impact: reports.impact,\n    related_project: research.related_project,\n    tool_improvement_ideas: (reports.tool_improvement_ideas || [])\n      .map(i => `- ${i.idea} (confidence: ${i.confidence})`).join('\\n'),\n    report_a: reportA,\n    report_b: reportB,\n    sources: sources,\n    review_status: needsReview ? 'Pending' : 'Not needed',\n    duration_seconds: Math.round((Date.now() - new Date(request.created_at).getTime()) / 1000),\n  },\n}];"
+      },
+      "id": "ab9f5784-0aea-4bc7-8449-a5aabc545992",
+      "name": "Quality Gate",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        22608,
+        2944
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appTu021VISZwYr2o",
+          "mode": "list",
+          "cachedResultName": "Fix My Process",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8KTyxrsu1a8aEQ",
+          "mode": "list",
+          "cachedResultName": "Submissions",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o/tbl8KTyxrsu1a8aEQ"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {
+            "low_confidence": false,
+            "no_internal_solution": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "reference_code",
+              "displayName": "reference_code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "department",
+              "displayName": "department",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "problem",
+              "displayName": "problem",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "current_tools",
+              "displayName": "current_tools",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "frequency",
+              "displayName": "frequency",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "compliance_level",
+              "displayName": "compliance_level",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "policy_rules",
+              "displayName": "policy_rules",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confidence",
+              "displayName": "confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "confidence_label",
+              "displayName": "confidence_label",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "rerank_score",
+              "displayName": "rerank_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "groundedness_score",
+              "displayName": "groundedness_score",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "low_confidence",
+              "displayName": "low_confidence",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "internal_tool",
+              "displayName": "internal_tool",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "external_tool",
+              "displayName": "external_tool",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "no_internal_solution",
+              "displayName": "no_internal_solution",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "use_case_title",
+              "displayName": "use_case_title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "executive_summary",
+              "displayName": "executive_summary",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "effort",
+              "displayName": "effort",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "impact",
+              "displayName": "impact",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "related_project",
+              "displayName": "related_project",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "tool_improvement_ideas",
+              "displayName": "tool_improvement_ideas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "report_a",
+              "displayName": "report_a",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "report_b",
+              "displayName": "report_b",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "sources",
+              "displayName": "sources",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_status",
+              "displayName": "review_status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_note",
+              "displayName": "review_note",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reviewed_at",
+              "displayName": "reviewed_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "will_use",
+              "displayName": "will_use",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "feedback_reason",
+              "displayName": "feedback_reason",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "feedback_at",
+              "displayName": "feedback_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "duration_seconds",
+              "displayName": "duration_seconds",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "dbcdcbb0-d671-4a5e-88b0-8bc2d87f3e64",
+      "name": "Log Submission",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        22800,
+        2944
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MIbyH38rIM4hVpur",
+          "name": "Airtable Personal Access Token  - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ reference_code: $('Quality Gate').first().json.reference_code, status: $('Quality Gate').first().json.status, compliance_level: $('Quality Gate').first().json.compliance_level, confidence: $('Quality Gate').first().json.confidence, confidence_label: $('Quality Gate').first().json.confidence_label, low_confidence: $('Quality Gate').first().json.low_confidence, under_review: $('Quality Gate').first().json.review_status === 'Pending', report_a: $('Quality Gate').first().json.report_a, output: $('Quality Gate').first().json.report_a, formSubmittedText: $('Quality Gate').first().json.report_a }) }}",
+        "options": {}
+      },
+      "id": "8ca612aa-fcb4-4654-95a9-febf4db2750d",
+      "name": "Reply to User",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        22992,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $('Quality Gate').first().json.review_status }}",
+              "rightValue": "Pending",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fccea4c7-990a-41c0-a910-aae816b94501",
+      "name": "Needs Review?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        23568,
+        2944
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#ai-governance-review",
+          "mode": "name"
+        },
+        "message": "=*Fix My Process review: {{ $('Quality Gate').first().json.reference_code }}*\nCompliance: {{ $('Quality Gate').first().json.compliance_level.toUpperCase() }} ({{ $('Quality Gate').first().json.policy_rules }}) · Confidence: {{ $('Quality Gate').first().json.confidence }}%\nDepartment: {{ $('Quality Gate').first().json.department }}\nProblem: {{ $('Quality Gate').first().json.problem }}\nInternal tool: {{ $('Quality Gate').first().json.internal_tool }} · External tool: {{ $('Quality Gate').first().json.external_tool }}\nReason: {{ $('Research Agent').first().json.output.compliance_reason }}\nReport B in Notion: {{ $('Create Report B').first().json.url || 'not created, see Airtable' }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Add to pipeline",
+            "disapproveLabel": "Dismiss for now"
+          }
+        },
+        "options": {}
+      },
+      "id": "a9a64b73-cf5d-42ad-9edc-245a540e273a",
+      "name": "Ask AI Governance Board",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        23760,
+        2768
+      ],
+      "webhookId": "57995f2a-b569-5fd2-90c1-451547dd2410",
+      "credentials": {
+        "slackApi": {
+          "id": "Ds4MWu5FPvdg088S",
+          "name": "Slack Bot - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTu021VISZwYr2o",
+          "mode": "list",
+          "cachedResultName": "Fix My Process",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8KTyxrsu1a8aEQ",
+          "mode": "list",
+          "cachedResultName": "Submissions",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o/tbl8KTyxrsu1a8aEQ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Log Submission').first().json.id }}",
+            "review_status": "={{ $json.data.approved ? 'Added to pipeline' : 'Dismissed' }}",
+            "review_note": "={{ $json.data.approved ? 'Added to the AI pipeline by the AI Governance Board in Slack' : 'Dismissed for now by the AI Governance Board in Slack' }}",
+            "reviewed_at": "={{ $now.toISO() }}",
+            "status": "Reviewed"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "review_status",
+              "displayName": "review_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "review_note",
+              "displayName": "review_note",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reviewed_at",
+              "displayName": "reviewed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "a5423041-509f-4c2a-97e4-e53c62639d33",
+      "name": "Save Board Decision",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        23952,
+        2768
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MIbyH38rIM4hVpur",
+          "name": "Airtable Personal Access Token  - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "status",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "9502d9e4-dc9a-4e9a-a863-9217f91bb9fa",
+      "name": "App Check Status",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        22160,
+        2000
+      ],
+      "webhookId": "a2678196-3c7c-504d-aa1a-0e66164a248d",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xob6RnPfkJhoFMFH",
+          "name": "FMP webhook secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appTu021VISZwYr2o",
+          "mode": "list",
+          "cachedResultName": "Fix My Process",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8KTyxrsu1a8aEQ",
+          "mode": "list",
+          "cachedResultName": "Submissions",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o/tbl8KTyxrsu1a8aEQ"
+        },
+        "filterByFormula": "={reference_code} = '{{ String($json.body.reference_code || '').replace(/[^A-Za-z0-9-]/g, '') }}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "id": "df31fe94-a3f2-46f2-b7fc-7bfada65b3e7",
+      "name": "Find Submission",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        22384,
+        2000
+      ],
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MIbyH38rIM4hVpur",
+          "name": "Airtable Personal Access Token  - Fix My Process"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "=   {{ JSON.stringify({ found: !!$json.id, reference_code: $json.reference_code, status: $json.status, review_status: $json.review_status, review_note: $json.review_note, compliance_level: $json.compliance_level, confidence: $json.confidence, confidence_label: $json.confidence_label, report_a: $json.report_a }) }}",
+        "options": {}
+      },
+      "id": "6bbbf638-2702-443d-9595-75a173eb67df",
+      "name": "Return Status",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        22592,
+        2000
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "feedback",
+        "authentication": "headerAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "4ef67f64-5b15-4c3b-8506-06dbe15ff4d2",
+      "name": "App Feedback",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        22160,
+        2176
+      ],
+      "webhookId": "0c677c2d-797a-5772-b04f-c82cae73f8bc",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xob6RnPfkJhoFMFH",
+          "name": "FMP webhook secret"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appTu021VISZwYr2o",
+          "mode": "list",
+          "cachedResultName": "Fix My Process",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8KTyxrsu1a8aEQ",
+          "mode": "list",
+          "cachedResultName": "Submissions",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o/tbl8KTyxrsu1a8aEQ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "reference_code": "={{ $json.body.reference_code }}",
+            "will_use": "={{ $json.body.will_use }}",
+            "feedback_reason": "={{ $json.body.feedback_reason }}",
+            "feedback_at": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "reference_code"
+          ],
+          "schema": [
+            {
+              "id": "reference_code",
+              "displayName": "reference_code",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "will_use",
+              "displayName": "will_use",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "feedback_reason",
+              "displayName": "feedback_reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "feedback_at",
+              "displayName": "feedback_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "readOnly": false,
+              "removed": false
+            }
+          ]
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "fb2791b2-06e3-46a4-8762-33ba267e47e4",
+      "name": "Save Feedback",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        22384,
+        2176
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MIbyH38rIM4hVpur",
+          "name": "Airtable Personal Access Token  - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ saved: !!$json.id }) }}",
+        "options": {}
+      },
+      "id": "90109f41-04aa-41a0-bbf3-b06e3a85fdb8",
+      "name": "Confirm Feedback",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        22592,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1536
+        }
+      },
+      "id": "793f6f34-40cd-42e0-ab14-2650815be61e",
+      "name": "OpenAI Embeddings (search)1",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        21600,
+        3920
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "openAiApi": {
+          "id": "mTPrW5zI037tiOyC",
+          "name": "OpenAi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Chunk by Section (simple version), mode: Run Once for All Items\n// Reads the PDF text line by line. A line that starts with a known heading starts a new chunk.\n\nconst NAMESPACE = $input.first().json.namespace; // passed on by Extract PDF Text (Keep Source: JSON)\nconst MAX = 1200; // longer sections are cut into parts of this size\n\nconst DOCS = {\n  policy: ['KA-AI-POL-001', '01_KA_Internal_AI_Policy.pdf', ['1. Purpose', '2. Roles', '3. Definitions', '4. Data Classification', '5. Risk Levels', '5.1 Green', '5.2 Amber', '5.3 Red', '6. Internal First', '7. Human Oversight', '8. Privacy', '9. Escalation', '10. Requesting', '11. Incidents', '12. Policy Review', 'Annex A']],\n  tools: ['KA-AI-TOOLS-002', '02_KA_Approved_Tools_List.pdf', ['1. How to Use', '2.1 KAi Assist', '2.2 Ticket Lens', '2.3 FlowMate', '2.4 Knowledge Finder', '2.5 Insight Desk', '3. Approved External', '4. Pilot Tools', '5. Not Approved', '6. Requesting', 'Annex A']],\n  works_council: ['KA-BV-AI-2026', '03_KA_Works_Council_Agreement_AI.pdf', ['§ 1 ', '§ 2 ', '§ 3 ', '§ 4 ', '§ 5 ', '§ 6 ', '§ 7 ', '§ 8 ', '§ 9 ', '§ 10 ', '§ 11 ', 'Annex 1', 'Annex 2', 'Annex 3']],\n  past_projects: ['KA-AI-PROJ-004', '04_KA_Past_AI_Projects.pdf', ['1. Purpose', '2. Overview', '3. Project Details', 'P-01 KAi', 'P-02 Ticket', 'P-03 FlowMate', 'P-04 Knowledge', 'P-05 Agent', 'P-06 Unapproved', 'P-07 Insight', 'P-08 Zapier', 'P-09 Listing', '4. Patterns']],\n};\nif (!DOCS[NAMESPACE]) throw new Error(`No namespace in the input. In Extract PDF Text set Options > Keep Source to JSON.`);\nconst [docId, source, headings] = DOCS[NAMESPACE];\n\n// 1. Walk through the lines; headings are used in order, so steps like \"1. Open...\" never match\nconst sections = [{ title: 'Document header', lines: [] }];\nlet next = 0;\nfor (const raw of $input.first().json.text.split('\\n')) {\n  const line = raw.replace(/\\s+/g, ' ').trim();\n  if (next < headings.length && line.startsWith(headings[next])) {\n    sections.push({ title: line, lines: [] });\n    next++;\n  }\n  sections[sections.length - 1].lines.push(line);\n}\n\n// 2. One item per chunk; long sections are cut into parts of MAX characters\nconst chunks = [];\nfor (const s of sections) {\n  const body = s.lines.join('\\n').trim();\n  for (let i = 0; i < body.length; i += MAX) {\n    chunks.push({ json: {\n      text: `[${docId} · ${s.title}]\\n${body.slice(i, i + MAX)}`,\n      doc_id: docId, source: source, section_title: s.title, namespace: NAMESPACE,\n    } });\n  }\n}\nreturn chunks;\n"
+      },
+      "id": "7284b11d-e036-4196-b195-47eacd282f45",
+      "name": "Chunk by Section",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        21248,
+        1984
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Upload one PDF per namespace\nClears only the chosen namespace, then loads the new chunks. Chunk by Section splits at the real headings and adds `[doc_id · section]`; doc_id, source, section_title and namespace go into the metadata. Text Splitter is 2000 / 0 so it never cuts these chunks again.",
+        "height": 720,
+        "width": 1320,
+        "color": 6
+      },
+      "id": "c5fe2f1e-02c2-417e-843e-016356f96984",
+      "name": "Note: Upload1",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        20672,
+        1840
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "file",
+        "options": {
+          "keepSource": "json"
+        }
+      },
+      "id": "8b36a97f-ad50-4c1d-a434-48acf20c0bcc",
+      "name": "Extract PDF Text1",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        21008,
+        1984
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "fix-my-process-kb",
+          "mode": "list",
+          "cachedResultName": "fix-my-process-kb"
+        },
+        "options": {
+          "clearNamespace": true,
+          "pineconeNamespace": "={{ $json.namespace }}"
+        }
+      },
+      "id": "d2c56e8a-35c2-4b3a-8154-cbf31b41b39a",
+      "name": "Store in Pinecone1",
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.3,
+      "position": [
+        21504,
+        1984
+      ],
+      "credentials": {
+        "pineconeApi": {
+          "id": "4h46iHYlNoja0oty",
+          "name": "PineconeApi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "dimensions": 1536
+        }
+      },
+      "id": "bff81f6e-6156-40e6-b118-daa444e9c813",
+      "name": "OpenAI Embeddings (upload)",
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        21424,
+        2224
+      ],
+      "retryOnFail": true,
+      "credentials": {
+        "openAiApi": {
+          "id": "mTPrW5zI037tiOyC",
+          "name": "OpenAi - Fix My Process"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.text }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "doc_id",
+                "value": "={{ $json.doc_id }}"
+              },
+              {
+                "name": "source",
+                "value": "={{ $json.source }}"
+              },
+              {
+                "name": "section_title",
+                "value": "={{ $json.section_title }}"
+              },
+              {
+                "name": "namespace",
+                "value": "={{ $json.namespace }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "18d501f9-3a7b-41eb-ad8f-83e772172e78",
+      "name": "PDF Text Loader",
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        21632,
+        2224
+      ]
+    },
+    {
+      "parameters": {
+        "chunkSize": 2000,
+        "options": {}
+      },
+      "id": "a0eb4f47-06d2-49c9-b207-7ee4669b5736",
+      "name": "Text Splitter",
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        21728,
+        2400
+      ]
+    },
+    {
+      "parameters": {
+        "formTitle": "Fix My Process: upload knowledge PDF",
+        "formDescription": "One PDF per namespace. The upload replaces the old chunks of that namespace.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "file",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "namespace",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "policy"
+                  },
+                  {
+                    "option": "tools"
+                  },
+                  {
+                    "option": "works_council"
+                  },
+                  {
+                    "option": "past_projects"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {
+          "path": "3029d863-e071-47ba-b379-810d1c8e2a06",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "PDF loaded into Pinecone."
+            }
+          }
+        }
+      },
+      "id": "f9aa7017-5109-4395-b326-141833494920",
+      "name": "Upload Knowledge PDF",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        20768,
+        1984
+      ],
+      "webhookId": "3029d863-e071-47ba-b379-810d1c8e2a06"
+    },
+    {
+      "parameters": {
+        "pageId": {
+          "__rl": true,
+          "value": "https://www.notion.so/ix-My-Process-Use-Cases-4128b4153b52804d9706e0216c8f4463",
+          "mode": "url"
+        },
+        "title": "={{ $('Quality Gate').first().json.reference_code }} · {{ $('Quality Gate').first().json.use_case_title }}",
+        "blockUi": {
+          "blockValues": [
+            {
+              "textContent": "=Reference: {{ $('Quality Gate').first().json.reference_code }} | Department: {{ $('Quality Gate').first().json.department }} | Date: {{ $now.toFormat('d LLL yyyy') }} | Confidence: {{ $('Quality Gate').first().json.confidence_label }} ({{ $('Quality Gate').first().json.confidence }}%)"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Executive summary"
+            },
+            {
+              "textContent": "={{ $('Quality Gate').first().json.executive_summary }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Use case card"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Use case: {{ $('Quality Gate').first().json.use_case_title }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Problem and frequency: {{ $('Quality Gate').first().json.problem + ' (' + $('Quality Gate').first().json.frequency + ')' }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Internal answer: {{ $('Quality Gate').first().json.internal_tool + (($('Research Agent').first().json.output.internal_steps || []).length ? ': ' + $('Research Agent').first().json.output.internal_steps.join('; ') : '') }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=External answer: {{ $('Quality Gate').first().json.external_tool }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=No internal solution: {{ $('Quality Gate').first().json.no_internal_solution ? 'Yes' : 'No' }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Evidence and size: {{ $('Research Agent').first().json.output.related_research }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Compliance: {{ ({ green: '🟢 Green', amber: '🟠 Amber', red: '🔴 Red' })[$('Quality Gate').first().json.compliance_level] + ' (' + $('Quality Gate').first().json.policy_rules + ') · ' + ($('Quality Gate').first().json.review_status === 'Pending' ? 'under review by the AI Governance Board' : 'no review needed') }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Effort: {{ $('Quality Gate').first().json.effort }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Impact: {{ $('Quality Gate').first().json.impact }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Related past project: {{ $('Quality Gate').first().json.related_project }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Tool owner: {{ $('Research Agent').first().json.output.tool_owner }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "=Quality: {{ 'rerank ' + $('Quality Gate').first().json.rerank_score + ' · groundedness ' + $('Quality Gate').first().json.groundedness_score }}"
+            },
+            {
+              "type": "bulleted_list_item",
+              "textContent": "Employee feedback: pending (arrives later, see Airtable)"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Internal tool improvement ideas"
+            },
+            {
+              "textContent": "={{ $('Quality Gate').first().json.tool_improvement_ideas || 'None' }}"
+            },
+            {
+              "type": "heading_2",
+              "textContent": "Sources"
+            },
+            {
+              "textContent": "={{ $('Quality Gate').first().json.sources }}"
+            },
+            {
+              "textContent": "=Airtable record: https://airtable.com/appTu021VISZwYr2o/tbl8KTyxrsu1a8aEQ/{{ $('Log Submission').item.json.id }}"
+            }
+          ]
+        },
+        "options": {
+          "iconType": "emoji",
+          "icon": "📋"
+        }
+      },
+      "id": "b93d3d5e-922a-466d-a3ca-a277e889a859",
+      "name": "Create Report B",
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        23184,
+        2944
+      ],
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "notionApi": {
+          "id": "nCc3a7tSpKBHNIRZ",
+          "name": "Notion - fix my process"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#ai-governance-review",
+          "mode": "name"
+        },
+        "text": "=📋 New use case {{ $('Quality Gate').first().json.reference_code }} · {{ $('Quality Gate').first().json.department }} · {{ $('Quality Gate').first().json.compliance_level.toUpperCase() }} · Confidence {{ $('Quality Gate').first().json.confidence_label }} ({{ $('Quality Gate').first().json.confidence }}%)\n*{{ $('Quality Gate').first().json.use_case_title }}*\n{{ $('Quality Gate').first().json.executive_summary }}\nReport B in Notion: {{ $('Create Report B').first().json.url || 'not created, see Airtable' }}\nAirtable record: https://airtable.com/appTu021VISZwYr2o/tbl8KTyxrsu1a8aEQ/{{ $('Log Submission').item.json.id }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "unfurl_links": false,
+          "unfurl_media": false
+        }
+      },
+      "id": "919d9457-2c71-494d-af2b-8c8ab7a0f248",
+      "name": "Notify AI Governance",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        23376,
+        2944
+      ],
+      "webhookId": "ccb90f73-6b43-4edc-aad2-1f19b6b71199",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "slackApi": {
+          "id": "Ds4MWu5FPvdg088S",
+          "name": "Slack Bot - Fix My Process"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "App Form Intake": {
+      "main": [
+        [
+          {
+            "node": "Normalize Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App Chat Intake": {
+      "main": [
+        [
+          {
+            "node": "Normalize Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n Form (backup)": {
+      "main": [
+        [
+          {
+            "node": "Normalize Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "n8n Chat (backup)": {
+      "main": [
+        [
+          {
+            "node": "Normalize Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Request": {
+      "main": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model (agent)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily Web Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GNews Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAlex Research": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Approved Tools": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Policy": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Works Council": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Past Projects": {
+      "ai_tool": [
+        [
+          {
+            "node": "Research Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cohere Reranker": {
+      "ai_reranker": [
+        [
+          {
+            "node": "Search Approved Tools",
+            "type": "ai_reranker",
+            "index": 0
+          },
+          {
+            "node": "Search Policy",
+            "type": "ai_reranker",
+            "index": 0
+          },
+          {
+            "node": "Search Works Council",
+            "type": "ai_reranker",
+            "index": 0
+          },
+          {
+            "node": "Search Past Projects",
+            "type": "ai_reranker",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Research Agent": {
+      "main": [
+        [
+          {
+            "node": "Write Reports A + B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model (reports)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write Reports A + B",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Reports Output",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reports Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Write Reports A + B",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Reports A + B": {
+      "main": [
+        [
+          {
+            "node": "Cohere Rerank Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cohere Rerank Score": {
+      "main": [
+        [
+          {
+            "node": "Groundedness Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Model (judge)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Groundedness Check",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Judge Output": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Groundedness Check",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groundedness Check": {
+      "main": [
+        [
+          {
+            "node": "Quality Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quality Gate": {
+      "main": [
+        [
+          {
+            "node": "Log Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Submission": {
+      "main": [
+        [
+          {
+            "node": "Reply to User",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to User": {
+      "main": [
+        [
+          {
+            "node": "Create Report B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs Review?": {
+      "main": [
+        [
+          {
+            "node": "Ask AI Governance Board",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask AI Governance Board": {
+      "main": [
+        [
+          {
+            "node": "Save Board Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App Check Status": {
+      "main": [
+        [
+          {
+            "node": "Find Submission",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Submission": {
+      "main": [
+        [
+          {
+            "node": "Return Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "App Feedback": {
+      "main": [
+        [
+          {
+            "node": "Save Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Feedback": {
+      "main": [
+        [
+          {
+            "node": "Confirm Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings (search)1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Search Approved Tools",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Search Policy",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Search Works Council",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Search Past Projects",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk by Section": {
+      "main": [
+        [
+          {
+            "node": "Store in Pinecone1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract PDF Text1": {
+      "main": [
+        [
+          {
+            "node": "Chunk by Section",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Embeddings (upload)": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Store in Pinecone1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PDF Text Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Store in Pinecone1",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "PDF Text Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Knowledge PDF": {
+      "main": [
+        [
+          {
+            "node": "Extract PDF Text1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Report B": {
+      "main": [
+        [
+          {
+            "node": "Notify AI Governance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify AI Governance": {
+      "main": [
+        [
+          {
+            "node": "Needs Review?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "errorWorkflow": "dMdHlaxunmuWjyR8",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "versionId": "e0d742ec-cb83-4929-90e6-8ca4bd86d3f2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "49b42c0051ee1c04693c425c4d57eeb1072531f55d1515f0d9aeb5a5977f030a"
+  },
+  "id": "IB4LI2nkvlQEMJ8x",
+  "tags": []
+}

@@ -1,0 +1,269 @@
+{
+  "name": "Fix My Process - Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "4c78d366-2722-4bbb-a725-307044935a57",
+      "name": "Any Assigned Workflow Error",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        640,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect the error details from the Error Trigger (one item)\nconst event = $input.first().json || {};\nconst execution = event.execution || {};\nconst workflow = event.workflow || {};\nconst id = String(execution.id || '');\n\n// Keep the message short: error texts can quote parts of the request\nconst message = String((execution.error && execution.error.message) || 'No error message').slice(0, 300);\n\nreturn [{ json: {\n  created_at: new Date().toISOString(),\n  workflow: String(workflow.name || 'Unknown workflow'),\n  execution_id: id,\n  reference_code: id ? 'FMP-' + id : '',\n  node: String(execution.lastNodeExecuted || 'Unknown node'),\n  error_message: message,\n  execution_url: String(execution.url || ''),\n} }];"
+      },
+      "id": "9a8445da-583b-4122-a21a-e2d648352b92",
+      "name": "Keep Minimal Error Context",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#fix-my-process-alerts",
+          "mode": "name"
+        },
+        "text": "=🚨 Fix My Process error {{ $('Keep Minimal Error Context').first().json.reference_code }}\nWorkflow: {{ $('Keep Minimal Error Context').first().json.workflow }} · Node: {{ $('Keep Minimal Error Context').first().json.node }}\nError: {{ $('Keep Minimal Error Context').first().json.error_message }}\nExecution: {{ $('Keep Minimal Error Context').first().json.execution_url }}",
+        "otherOptions": {
+          "includeLinkToWorkflow": false,
+          "unfurl_links": false,
+          "unfurl_media": false
+        }
+      },
+      "id": "93342e63-b811-4e16-86e3-bc4d19b04ad3",
+      "name": "Alert Workflow Owner in Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1200,
+        128
+      ],
+      "webhookId": "38c04e0e-1a63-430d-895f-a5e640754980",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "slackApi": {
+          "id": "Ds4MWu5FPvdg088S",
+          "name": "Slack Bot - Fix My Process"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appTu021VISZwYr2o",
+          "mode": "list",
+          "cachedResultName": "Fix My Process",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblU8DSVRPWWk2Ewr",
+          "mode": "list",
+          "cachedResultName": "Errors",
+          "cachedResultUrl": "https://airtable.com/appTu021VISZwYr2o/tblU8DSVRPWWk2Ewr"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "execution_id": "={{ $('Keep Minimal Error Context').first().json.execution_id }}",
+            "created_at": "={{ $('Keep Minimal Error Context').first().json.created_at }}",
+            "workflow": "={{ $('Keep Minimal Error Context').first().json.workflow }}",
+            "node": "={{ $('Keep Minimal Error Context').first().json.node }}",
+            "error_message": "={{ $('Keep Minimal Error Context').first().json.error_message }}",
+            "reference_code": "={{ $('Keep Minimal Error Context').first().json.reference_code }}",
+            "execution_url": "={{ $('Keep Minimal Error Context').first().json.execution_url }}",
+            "resolved": false
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "execution_id",
+              "displayName": "execution_id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "node",
+              "displayName": "node",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "reference_code",
+              "displayName": "reference_code",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "resolved",
+              "displayName": "resolved",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "resolution_note",
+              "displayName": "resolution_note",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "execution_url",
+              "displayName": "execution_url",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "11a1f57a-2a0f-4f5b-bdc9-d1e6b8ed4685",
+      "name": "Log Error in Airtable",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "MIbyH38rIM4hVpur",
+          "name": "Airtable Personal Access Token  - Fix My Process"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Any Assigned Workflow Error": {
+      "main": [
+        [
+          {
+            "node": "Keep Minimal Error Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Keep Minimal Error Context": {
+      "main": [
+        [
+          {
+            "node": "Alert Workflow Owner in Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Workflow Owner in Slack": {
+      "main": [
+        [
+          {
+            "node": "Log Error in Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "839c48c5-7084-45f5-8dfe-529b60ba04d5",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "instanceId": "49b42c0051ee1c04693c425c4d57eeb1072531f55d1515f0d9aeb5a5977f030a"
+  },
+  "id": "dMdHlaxunmuWjyR8",
+  "tags": []
+}
