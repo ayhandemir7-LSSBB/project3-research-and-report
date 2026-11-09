@@ -1,7 +1,7 @@
 # Future GTM Sprints
 
 **Project:** Kleinanzeigen "Fix My Process" Agent  
-**Status:** Updated after the build, 9 Nov 2026. Calibration results to be added.
+**Status:** Updated after the build, 9 Nov 2026. Calibration added 9 Nov 2026 (see `confidence_calibration.md`).
 
 The MVP proves the core loop: one submission, researched and compliance-checked, two reports with a confidence score, logged with feedback. These sprints move it toward internal go-to-market: from a working tool to an adopted one that shapes the AI roadmap. Order follows the sponsor first: the CPO / AI enablement team funds the next step, so their value comes first.
 
@@ -15,7 +15,8 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 - **Reports:** Report A for the employee (internal tool first, steps, is it allowed) and Report B for the CPO / AI enablement team (use-case card with executive summary).
 - **Quality gate:** Cohere relevance score + LLM groundedness judge + code checks (known tools, document IDs, URLs found in the search results, valid rule IDs). Confidence High (75+), Medium (40-74) or Low (below 40), shown as a banner.
 - **Logging:** every submission, review decision, feedback ("will you use the internal tool?" + reason) and error in Airtable; errors also alert in Slack.
-- **Calibration:** [x of 15 test cases High; compliance level correct in x of 15]
+- **Hand-off and errors:** a Report B page in Notion and a notice in #ai-governance-review for every case; hard failures go to the Error Handler (Airtable Errors table + Slack alert).
+- **Calibration:** 8 runs on 2 fixed inputs: compliance level correct in 6 of 6 runs after the prompt fixes, rubric score 25% → 75%. Confidence shows source support, not correctness (r = 0.41 with the rubric).
 
 ---
 
@@ -25,7 +26,7 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 |---|---|---|---|---|---|
 | **1. Close the loop** | Turn logged submissions and feedback into roadmap decisions | CPO / AI enablement team, internal tool owners | Scheduled n8n digest posted to Slack, reviewed in the monthly AI roadmap meeting | Monthly portfolio digest and internal-tool gap report | % of "won't use internal tool" reasons categorised; number of "no internal solution" cases turned into roadmap items |
 | **2. Meet them where they work** | Grow submissions and adoption by moving intake into daily tools | Operations employees, pilot with 1 or 2 ops teams | Slack entry point, introduced in team meetings by the OEE team | Slack Trigger entry point + PII redaction step | Submissions per week; internal tool adoption rate; feedback rate |
-| **3. Smarter and trusted** | Raise report quality and earn works council trust for wider rollout | Works council, Legal, CPO | Joint review with the works council; research loop only if calibration shows the need | Amber handling agreement, compliance pipeline report, ops health digest, research loop (conditional) | % of cases auto-cleared vs reviewed; review turnaround; % of reports with High confidence |
+| **3. Smarter and trusted** | Raise report quality and earn works council trust for wider rollout | Works council, Legal, CPO | Joint review with the works council; research loop only if calibration shows the need | Amber handling agreement, compliance pipeline report, ops health digest, research loop (conditional) | % of cases auto-cleared vs reviewed; review turnaround; % of High-confidence reports that pass a spot check |
 
 ---
 
@@ -67,7 +68,7 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
   - **Compliance pipeline report:** cases in review, turnaround time, auto-cleared vs escalated.
   - **Ops health digest** in Slack and an Airtable view: errors, failed APIs, low-confidence rate.
   - **Research loop (conditional):** a LangGraph service behind an n8n HTTP Request node that re-queries when evidence is weak and finds an approved alternative when a tool is not approved. Built only if calibration and live data show many Low-confidence cases.
-- **Success metric:** % of cases auto-cleared vs reviewed; review turnaround time; % of reports with High confidence.
+- **Success metric:** % of cases auto-cleared vs reviewed; review turnaround time; % of High-confidence reports that pass a spot check.
 - **Milestone:** Works council sign-off on the transparency and review process.
 
 ---
@@ -79,11 +80,14 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 | Compliance through Annex A yes / no fields, with code deciding the level | Improvement | More stable and auditable than a free LLM judgement |
 | Send Low-confidence reports to the AI Governance Board | Option | Decide after calibration, based on how often Low happens |
 | Retrieval tuning: reranker top 4-5 instead of 3 | Improvement | More policy text reaches the agent |
-| Retries on the 3 research API tools | Fix | Free-tier limits and short outages |
+| Real retries on the 3 research API tools | Fix | HTTP Request Tools can't retry; today an agent prompt rule retries once. A real retry needs the API calls outside the agent |
 | Cost trims: shorter Tavily results, smaller judge evidence limit, no reranker on past projects, optional removal of the rerank score | Improvement | Lower cost per run where quality stays the same |
 | Async response: return the reference code at once and let Check status show the report | Fix (only if timing tests fail) | Webhook or Render timeouts on long runs |
 | Access control for the app and the admin upload form | Feature | Nothing is password protected in the MVP |
 | Cache API results for repeated questions | Improvement | Saves free-tier quota and time |
-| Expand the calibration set beyond 15 cases and re-tune the bands | Improvement | Better confidence scores |
+| Full calibration: 15-20 labelled cases, 3 runs each | Improvement | Set the 75 / 40 bands from accuracy and repeatability, not judgement |
+| Deterministic Quality Gate checks (5 checks, see `confidence_calibration.md`) | Improvement | Penalise rules that don't match the level or the case, data-class breaches and unlisted tools; correlation with correctness 0.41 → 0.73 on the test runs |
+| `failed_tools` field in Airtable | Improvement | Log which research tools failed inside the agent |
+| Approved tool names read from the tools list | Improvement | The 6 external tool names are hardcoded in the agent prompt and must be updated by hand |
 | German and English reports | Feature | Kleinanzeigen works in both languages |
 | Keep Render awake or move off the free plan for demos | Improvement | Free plan sleeps (about 1 minute to wake) |
