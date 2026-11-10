@@ -13,7 +13,18 @@ Ironhack AI Consulting & Integration Bootcamp · Project 3: Autonomous Company R
 | **Industry / use case** | Online classifieds marketplace (Kleinanzeigen): internal operations, process excellence and AI enablement |
 | **Primary stack** | **n8n** (self-hosted 2.13.2). Gradio on Render is the UI only |
 
-**Contents:** [1 Problem and users](#1-problem-and-users) · [2 How it works](#2-how-it-works) · [3 Why n8n](#3-why-n8n-stack-decision) · [4 Tools and knowledge base](#4-tools-and-knowledge-base) · [5 Reports, compliance and confidence](#5-reports-compliance-and-confidence) · [6 Error handling](#6-error-handling) · [7 Setup](#7-setup) · [8 How to run](#8-how-to-run) · [9 Quality, calibration and cost](#9-quality-calibration-and-cost) · [10 Future GTM sprints](#10-future-gtm-sprints) · [11 Repo map, known gaps and docs](#11-repo-map-known-gaps-and-docs)
+**Contents:**  
+[1 Problem and users](#1-problem-and-users)   
+[2 How it works](#2-how-it-works)  
+[3 Why n8n](#3-why-n8n-stack-decision)  
+[4 Tools and knowledge base](#4-tools-and-knowledge-base)  
+[5 Reports, compliance and confidence](#5-reports-compliance-and-confidence)  
+[6 Error handling](#6-error-handling)  
+[7 Setup](#7-setup)  
+[8 How to run](#8-how-to-run)  
+[9 Quality, calibration and cost](#9-quality-calibration-and-cost)  
+[10 Future GTM sprints](#10-future-gtm-sprints)  
+[11 Repo map, known gaps and docs](#11-repo-map-known-gaps-and-docs)
 
 ---
 
@@ -333,11 +344,7 @@ cost_analysis.md            cost per run, free-tier limits, cost levers
 
 **Known gaps (MVP):**
 
-- No login on the app or the upload form, and no PII redaction (a UI notice and a prompt rule only). PII redaction is planned in sprint 2.
-- Amber cases are posted to the Board channel but not decided, while policy 5.2 asks for Board review (sprint 3).
-- The 75 / 40 bands are judgement settings and the score does not track correctness. Next: deterministic Quality Gate checks, then a rescore.
-- Prompt v5 has not been rescored on the 15 cases.
+- No login on the app or the upload form, and no PII redaction. PII redaction is planned in sprint 2.
 - 1 of 19 study runs took 234 s, over the 180 s app timeout. The run still finishes and is logged, but the employee gets no reference code.
-- Failures inside the agent's tools and a failed Notion page leave no Errors row.
 - Approved tool names are hardcoded in the agent prompt, the Research Output schema and the Quality Gate.
 - Free tiers: the Cohere trial is non-production, the GNews free plan is non-commercial, Airtable Free allows 1,000 records per base, and the Render free plan sleeps.
