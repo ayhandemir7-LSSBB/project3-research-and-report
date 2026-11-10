@@ -327,7 +327,8 @@
           "id": "mTPrW5zI037tiOyC",
           "name": "OpenAi - Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -342,7 +343,9 @@
       "position": [
         21216,
         3136
-      ]
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -359,7 +362,8 @@
         3104
       ],
       "retryOnFail": true,
-      "waitBetweenTries": 2000
+      "waitBetweenTries": 2000,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -572,7 +576,7 @@
         21808,
         3920
       ],
-      "retryOnFail": false,
+      "retryOnFail": true,
       "waitBetweenTries": 3000,
       "credentials": {
         "cohereApi": {
@@ -690,7 +694,9 @@
       "position": [
         22272,
         2944
-      ]
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -718,7 +724,8 @@
           "id": "mTPrW5zI037tiOyC",
           "name": "OpenAi - Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -732,7 +739,9 @@
       "position": [
         22416,
         3136
-      ]
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1192,7 +1201,8 @@
           "id": "MIbyH38rIM4hVpur",
           "name": "Airtable Personal Access Token  - Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1207,7 +1217,9 @@
       "position": [
         22992,
         2944
-      ]
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1240,7 +1252,8 @@
       "position": [
         23568,
         2944
-      ]
+      ],
+      "retryOnFail": false
     },
     {
       "parameters": {
@@ -1270,12 +1283,14 @@
         2768
       ],
       "webhookId": "57995f2a-b569-5fd2-90c1-451547dd2410",
+      "retryOnFail": true,
       "credentials": {
         "slackApi": {
           "id": "Ds4MWu5FPvdg088S",
           "name": "Slack Bot - Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1387,7 +1402,8 @@
           "id": "MIbyH38rIM4hVpur",
           "name": "Airtable Personal Access Token  - Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -1621,13 +1637,14 @@
         3920
       ],
       "retryOnFail": true,
-      "waitBetweenTries": 3000,
+      "waitBetweenTries": 2000,
       "credentials": {
         "openAiApi": {
           "id": "mTPrW5zI037tiOyC",
           "name": "OpenAi - Fix My Process"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -2525,7 +2542,7 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
@@ -2534,7 +2551,7 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "cfa674f7-889e-408d-978e-ab9d934acc6d",
+  "versionId": "7db013d0-b037-44bd-b09a-c07b2f733598",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "49b42c0051ee1c04693c425c4d57eeb1072531f55d1515f0d9aeb5a5977f030a"
