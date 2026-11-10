@@ -89,11 +89,13 @@ Other findings:
 
 | # | Fix | Where | Target | Status |
 |---|---|---|---|---|
-| 1 | Fixed lists for the tool fields: `internal_tool` = the 5 internal tools or None, `external_tool` = the 6 approved tools or None; external is None for customer data (D4) | Research Output parser schema, Research Agent prompt | Zapier 3 times, Miro AI in the internal field, Copilot for customer data 3 times | Applied |
+| 1 | Fixed lists for the tool fields: `external_tool` = the 6 approved tools or None, None for customer data (D4); `internal_tool` = the 5 internal tools or None, named in the prompt, unknown names flagged by the Quality Gate | Research Output parser schema (`external_tool`), Research Agent prompt, Quality Gate | Zapier 3 times, Miro AI in the internal field, Copilot for customer data 3 times | Applied |
 | 2 | Report A uses `internal_tool` and `external_tool` as written; red cases without an internal tool get a fixed "no safe alternative" sentence; Report A never advises the flagged step | Write Reports A + B prompt | 9 of 19 reports where text and fields disagreed; 4 of 4 red reports | Applied |
 
 ### After the fixes
 
 5 spot-check runs after fixes 1 and 2, reviewed by hand: all improved. They were not rescored on the rubric, so the 79% above is the before-fix baseline. An after-fix number needs a rescore of the 13 cases.
+
+**v5 prompts (10 Nov)** came after the study: not rescored on the 13 cases, spot checks only. v5 replaces the fixed red sentence with safe next steps, so every employee leaves with something to do today.
 
 **Conclusion:** prompt fixes keep improving the reports; the confidence score still does not track correctness. The 75 / 40 bands stay. Next: deterministic Quality Gate checks for level / rule consistency and external tool data class, then rescore and set the bands from the results.

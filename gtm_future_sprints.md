@@ -1,7 +1,7 @@
 # Future GTM Sprints
 
 **Project:** Kleinanzeigen "Fix My Process" Agent  
-**Status:** Updated after the build, 9 Nov 2026. Calibration added 9 Nov 2026 (see `confidence_calibration.md`).
+**Status:** Updated after the build, 9 Nov 2026. Calibration added 9 Nov 2026 (see `confidence_calibration.md`). v5 prompts added 10 Nov 2026.
 
 The MVP proves the core loop: one submission, researched and compliance-checked, two reports with a confidence score, logged with feedback. These sprints move it toward internal go-to-market: from a working tool to an adopted one that shapes the AI roadmap. Order follows the sponsor first: the CPO / AI enablement team funds the next step, so their value comes first.
 
@@ -12,11 +12,11 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 - **Entry points:** Gradio form and chat (UI), with n8n form and chat as backup; Check status and feedback by reference code (FMP-xxxx).
 - **Research:** one n8n Research Agent calls Tavily (web practice), GNews (news) and OpenAlex (research), and searches 4 internal PDFs in Pinecone (policy, approved tools, works council agreement, past projects), with Cohere reranking.
 - **Compliance:** green / amber / red with policy rule IDs; **red** cases go to the AI Governance Board in Slack after the user already has the report. Red stays blocked; the Board chooses **Add to pipeline** (worth a compliant solution) or **Dismiss for now**.
-- **Reports:** Report A for the employee (internal tool first, steps, is it allowed) and Report B for the CPO / AI enablement team (use-case card with executive summary).
-- **Quality gate:** Cohere relevance score + LLM groundedness judge + code checks (known tools, document IDs, URLs found in the search results, valid rule IDs). Confidence High (75+), Medium (40-74) or Low (below 40), shown as a banner.
+- **Reports:** Report A for the employee (internal tool first, steps, is it allowed) and Report B for the CPO / AI enablement team (use-case card with executive summary). Since v5 every Report A ends with a safe next step the employee can take today, even when no tool fits.
+- **Quality gate:** Cohere relevance score + LLM groundedness judge + code checks (known tools, document IDs, URLs found in the search results, valid rule IDs). Confidence High (75+), Medium (40-74) or Low (below 40), with a banner below High.
 - **Logging:** every submission, review decision, feedback ("will you use the internal tool?" + reason) and error in Airtable; errors also alert in Slack.
 - **Hand-off and errors:** a Report B page in Notion and a notice in #ai-governance-review for every case; hard failures go to the Error Handler (Airtable Errors table + Slack alert).
-- **Calibration:** 8 runs on 2 fixed inputs: compliance level correct in 6 of 6 runs after the prompt fixes, rubric score 25% → 83%. Confidence shows source support, not correctness (r = 0.38 with the rubric). A 15-case study (13 cases, 19 runs) then scored 79% on the rubric (r = 0.35) and led to 2 more fixes; see `confidence_calibration.md`.
+- **Calibration:** 8 runs on 2 fixed inputs: compliance level correct in 6 of 6 runs after the prompt fixes, rubric score 25% → 83%. Confidence shows source support, not correctness (r = 0.38 with the rubric). A 15-case study (13 cases, 19 runs) then scored 79% on the rubric (r = 0.35) and led to 2 more fixes; see `confidence_calibration.md`. The v5 prompts (10 Nov) came after the study and have spot checks only.
 
 ---
 
@@ -82,12 +82,12 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 | Retrieval tuning: reranker top 4-5 instead of 3 | Improvement | More policy text reaches the agent |
 | Real retries on the 3 research API tools | Fix | HTTP Request Tools can't retry; today an agent prompt rule retries once. A real retry needs the API calls outside the agent |
 | Cost trims: shorter Tavily results, smaller judge evidence limit, no reranker on past projects, optional removal of the rerank score | Improvement | Lower cost per run where quality stays the same |
-| Async response: return the reference code at once and let Check status show the report | Fix (only if timing tests fail) | Webhook or Render timeouts on long runs |
+| Async response: return the reference code at once and let Check status show the report | Fix (only if timing tests fail) | Webhook or Render timeouts on long runs: 1 of 19 study runs (FMP-3124) took 234 s, over the app's 180 s timeout |
 | Access control for the app and the admin upload form | Feature | Nothing is password protected in the MVP |
 | Cache API results for repeated questions | Improvement | Saves free-tier quota and time |
-| Rescore the 15-case study after the fixes, including the 2 skipped cases (R04, R05), and set the 75 / 40 bands | Improvement | The 19-run study gives the before-fix baseline; the bands should come from accuracy and repeatability after the Quality Gate checks, not judgement |
-| Deterministic Quality Gate checks: level / rule consistency and external tool data class | Improvement | Penalise rules from another level (for example G5 in an amber case) and external tools used above their data class (for example Microsoft 365 Copilot for customer data). These errors appeared in 4 of 19 runs of the 15-case study and were not penalised. The unlisted-tool check is done: the Research Output schema now allows only the listed tools |
+| Rescore the 15-case study on v5 (after the 2 study fixes and the 10 Nov prompts), including the 2 skipped cases (R04, R05), and set the 75 / 40 bands | Improvement | The 19-run study gives the before-fix baseline (v4); the bands should come from accuracy and repeatability after the Quality Gate checks, not judgement |
+| Deterministic Quality Gate checks: level / rule consistency and external tool data class | Improvement | Penalise rules from another level (for example G5 in an amber case) and external tools used above their data class (for example Microsoft 365 Copilot for customer data). These errors appeared in 4 of 19 runs of the 15-case study and were not penalised. The unlisted-tool check is done: the Research Output schema limits `external_tool` to the 6 approved tools, and the Quality Gate flags unknown internal tool names |
 | `failed_tools` field in Airtable | Improvement | Log which research tools failed inside the agent |
-| Approved tool names read from the tools list | Improvement | The 6 external tool names are hardcoded in the agent prompt and must be updated by hand |
+| Approved tool names read from the tools list | Improvement | The tool names are hardcoded in the agent prompt, the Research Output schema and the Quality Gate and must be updated by hand |
 | German and English reports | Feature | Kleinanzeigen works in both languages |
 | Keep Render awake or move off the free plan for demos | Improvement | Free plan sleeps (about 1 minute to wake) |

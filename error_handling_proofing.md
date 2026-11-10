@@ -8,14 +8,14 @@ Screenshots for the tests are in the `error_screenshots/` folder (section 6).
 
 - 13 failure points were forced on purpose and checked from the Gradio app. **All 13 passed.**
 - **Hard failures** (a main-chain node stops the run) go to the Error Handler. Each one creates a row in the Airtable **Errors** table and an alert in Slack **#fix-my-process-alerts**, and the app shows an error.
-- **Soft failures** (Notion page, tool calls) never block the employee's answer.
+- **Soft failures** (Notion page, tool calls, Cohere rerank) never block the employee's answer.
 - **Entry failures** (wrong secret, wrong URL) are stopped before n8n starts a run, so they only show in the app.
 
 | Failure type | Example | Where it shows up |
 |---|---|---|
 | Entry | Wrong webhook secret, workflow not published | App message only (no n8n execution) |
-| Hard | Agent, OpenAI, Cohere, Quality Gate, Airtable log, Slack notice | Errors row + Slack alert + app error |
-| Soft | Notion page, research tools | Slack notice text or the execution only; the employee still gets the report |
+| Hard | Agent, OpenAI, Quality Gate, Airtable log, Slack notice | Errors row + Slack alert + app error |
+| Soft | Notion page, research tools, Cohere rerank | Slack notice text or the execution only; the employee still gets the report |
 
 ## 2. How errors are handled
 
@@ -41,8 +41,8 @@ flowchart LR
 |---|---|---|
 | Research Agent | 3 tries, 3000 ms | Stop |
 | OpenAI models (agent, reports, judge), OpenAI Embeddings | Retry On Fail, 3000 ms | Stop |
-| Cohere Reranker (Pinecone tools) | Retry On Fail, 5000 ms | Stop |
-| Cohere Rerank Score | 5 tries, 5000 ms | Stop |
+| Cohere Reranker (Pinecone tools) | No retry | Stop |
+| Cohere Rerank Score | 5 tries, 5000 ms | Continue (rerank 0 caps confidence at 70, Medium; the report still arrives) |
 | Log Submission, Save Board Decision, Save Feedback, Find Submission | 3 tries, 2000 ms | Stop |
 | Create Report B (Notion) | 3 tries, 3000 ms | Continue (Slack notice says "not created, see Airtable") |
 | Notify AI Governance (Slack) | 3 tries, 3000 ms | Stop (the employee already has the reply at this point) |
@@ -56,9 +56,9 @@ flowchart LR
    - The real error message and the reference code are now saved.
    - Slack set to Continue on error.
    - Retries added.
-3. **Slack:** app invited to #fix-my-process-alerts.
-4. **Main workflow:** the retry and On Error settings in sections.
-5. **Research Agent prompt:** retry a failed tool once, then continue.
+2. **Slack:** app invited to #fix-my-process-alerts.
+3. **Main workflow:** the retry and On Error settings in section 3.
+4. **Research Agent prompt:** retry a failed tool once, then continue.
 
 ## 5. Test results
 
@@ -84,6 +84,8 @@ flowchart LR
 | 12 | Check status: unknown code | `FMP-0000` entered in Check status | App shows "not found"; no error | PASS |
 | 13 | Error Handler itself | Alert channel set to `#fix-my-process-alertsx`, then test 8 repeated | No Slack alert, but the Errors row is still created | PASS |
 
+**Note on test 7:** the test ran with Cohere Rerank Score set to On Error: Stop. It was set to Continue afterwards, and the retry was removed from the Cohere Reranker: a Cohere failure now gives rerank 0, the report still arrives with confidence max 70 (Medium), and no Errors row is written. Not retested.
+
 ## 6. Evidence (`error_screenshots/`)
 
 | File | Shows | Tests |
@@ -103,6 +105,7 @@ flowchart LR
 | Entry failures (wrong secret, wrong URL) leave no Errors row | n8n rejects the request before a run starts; it is a setup error, not a workflow failure | None |
 | After a timeout the employee has no reference code | The run still finishes and is logged | Backlog: async reply (code first, report in Check status)  |
 | A failed Notion page has no Errors row | The Slack notice reports it and Report B is in Airtable | None |
+| A Cohere Rerank Score failure has no Errors row | The report still arrives; rerank 0 caps confidence at 70 (Medium) | None |
 | A persistent Research Agent failure reruns all tools up to 3 times | Kept at 3 tries by choice; costs time and Cohere calls | None |
 
 ## 8. How to handle an error (runbook)
