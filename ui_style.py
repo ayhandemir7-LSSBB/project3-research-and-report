@@ -68,7 +68,8 @@ def big_loader(run_id):
             f'<span class="fmp-txt"><b>{html.escape(s["title"])}</b><small>{html.escape(s["sub"])}</small></span>'
             f'<span class="fmp-state"><i class="fmp-spin"></i><i class="fmp-check">✓</i></span></div>'
             for s in steps if s["phase"] == phase)
-        cols.append(f'<div class="fmp-phase"><div class="fmp-phase-title">{html.escape(phase)}</div>{cards}</div>')
+        # lang="en": uppercase "i" becomes "I", not the dotted "İ" (Turkish browser locale)
+        cols.append(f'<div class="fmp-phase"><div class="fmp-phase-title" lang="en">{html.escape(phase)}</div>{cards}</div>')
     return (
         f'<div class="fmp-big" data-run="{run_id}" role="status" aria-live="polite">'
         f'<div class="fmp-big-head"><div class="fmp-orb"></div><div>'
