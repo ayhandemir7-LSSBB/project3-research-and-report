@@ -21,12 +21,29 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 ---
 
 ## Overview
-
-| Sprint | Goal | Audience | Channel / motion | Deliverable | Success metric |
+ 
+These sprints come next; none of them is built yet. Order follows the sponsor: the CPO / AI enablement team funds the next step, so their value comes first.
+ 
+| Sprint | Goal | Audience | Channel / motion | Success metric |
+|---|---|---|---|---|
+| **1. Close the loop** | Turn logged submissions and feedback into roadmap decisions | CPO / AI enablement team, internal tool owners | Scheduled n8n digest in Slack, reviewed in the monthly AI roadmap meeting | Share of "won't use the internal tool" reasons categorised; "no internal solution" cases turned into roadmap items |
+| **2. Meet them where they work** | Grow submissions and adoption by moving intake into Slack | 1 or 2 operations pilot teams | Slack entry point introduced in team meetings by the OEE team, plus PII redaction | Submissions per week; internal tool adoption rate; feedback rate |
+| **3. Smarter and trusted** | Earn works council and Legal trust for a company-wide rollout | Works council, Legal, CPO | Joint review sessions; quarterly compliance report; amber handling agreement | Cases auto-cleared vs reviewed; review turnaround; High-confidence reports passing a spot check |
+ 
+### Planned reports
+ 
+The MVP writes 2 reports per case. The sprints add 4 reports that summarise all cases. They read the same Airtable data, so they need no new intake.
+ 
+| Report | Reader | Goal | Content | Data already logged | When |
 |---|---|---|---|---|---|
-| **1. Close the loop** | Turn logged submissions and feedback into roadmap decisions | CPO / AI enablement team, internal tool owners | Scheduled n8n digest posted to Slack, reviewed in the monthly AI roadmap meeting | Monthly portfolio digest and internal-tool gap report | % of "won't use internal tool" reasons categorised; number of "no internal solution" cases turned into roadmap items |
-| **2. Meet them where they work** | Grow submissions and adoption by moving intake into daily tools | Operations employees, pilot with 1 or 2 ops teams | Slack entry point, introduced in team meetings by the OEE team | Slack Trigger entry point + PII redaction step | Submissions per week; internal tool adoption rate; feedback rate |
-| **3. Smarter and trusted** | Raise report quality and earn works council trust for wider rollout | Works council, Legal, CPO | Joint review with the works council; research loop only if calibration shows the need | Amber handling agreement, compliance pipeline report, ops health digest, research loop (conditional) | % of cases auto-cleared vs reviewed; review turnaround; % of High-confidence reports that pass a spot check |
+| **A: Fix for me** | Employee, OEE team | Help the employee fix the problem today | Internal tool and steps, approved external alternative, how others solve it, is it allowed, sources | One per case | **MVP (built)** |
+| **B: Use-case card** | CPO / AI enablement | Give leadership a scoped, compliance-checked use case | Executive summary, evidence, compliance, effort vs impact, tool gaps, improvement ideas | One per case (Airtable + Notion) | **MVP (built)** |
+| **C: Portfolio digest** | CPO / AI enablement | Turn bottom-up submissions into roadmap input | Top friction themes per department, use cases ranked by impact and effort, "no internal solution" list, red cases the Board added to the pipeline | `use_case_title`, `effort`, `impact`, `no_internal_solution`, `review_status`, `department` | Sprint 1 (monthly) |
+| **D: Adoption and internal-tool gap** | CPO, internal tool owners | Show why internal tools are not used and what to fix | Reasons per tool from the feedback, adoption per department (groups of 5 or more only), suggested fixes for each tool owner | `will_use`, `feedback_reason`, `internal_tool`, `department` | Sprint 1 (monthly) |
+| **E: Compliance pipeline** | Works council, Legal | Make case handling transparent, as a condition for company-wide rollout | Cases in review, review turnaround, auto-cleared vs escalated | `compliance_level`, `status`, `review_status`, `created_at`, `reviewed_at` | Sprint 3 (quarterly) |
+| **F: Ops health** | Workflow owner | Keep the agent reliable | Errors per node, failed APIs, low-confidence rate | Airtable Errors table, `confidence_label`; failed tools need the backlog field `failed_tools` | Sprint 3 |
+ 
+Deliverables, milestones and the feature backlog: [`gtm_future_sprints.md`](gtm_future_sprints.md).
 
 ---
 
@@ -77,17 +94,10 @@ The MVP proves the core loop: one submission, researched and compliance-checked,
 
 | Item | Type | Why |
 |---|---|---|
-| Compliance through Annex A yes / no fields, with code deciding the level | Improvement | More stable and auditable than a free LLM judgement |
-| Send Low-confidence reports to the AI Governance Board | Option | Decide after calibration, based on how often Low happens |
-| Retrieval tuning: reranker top 4-5 instead of 3 | Improvement | More policy text reaches the agent |
-| Real retries on the 3 research API tools | Fix | HTTP Request Tools can't retry; today an agent prompt rule retries once. A real retry needs the API calls outside the agent |
+| Retrieval tuning: reranker top 4-5 instead of 3 | Improvement | More policy text reaches the agent  |
 | Cost trims: shorter Tavily results, smaller judge evidence limit, no reranker on past projects, optional removal of the rerank score | Improvement | Lower cost per run where quality stays the same |
-| Async response: return the reference code at once and let Check status show the report | Fix (only if timing tests fail) | Webhook or Render timeouts on long runs: 1 of 19 study runs (FMP-3124) took 234 s, over the app's 180 s timeout |
 | Access control for the app and the admin upload form | Feature | Nothing is password protected in the MVP |
 | Cache API results for repeated questions | Improvement | Saves free-tier quota and time |
-| Rescore the 15-case study on v5 (after the 2 study fixes and the 10 Nov prompts), including the 2 skipped cases (R04, R05), and set the 75 / 40 bands | Improvement | The 19-run study gives the before-fix baseline (v4); the bands should come from accuracy and repeatability after the Quality Gate checks, not judgement |
-| Deterministic Quality Gate checks: level / rule consistency and external tool data class | Improvement | Penalise rules from another level (for example G5 in an amber case) and external tools used above their data class (for example Microsoft 365 Copilot for customer data). These errors appeared in 4 of 19 runs of the 15-case study and were not penalised. The unlisted-tool check is done: the Research Output schema limits `external_tool` to the 6 approved tools, and the Quality Gate flags unknown internal tool names |
 | `failed_tools` field in Airtable | Improvement | Log which research tools failed inside the agent |
 | Approved tool names read from the tools list | Improvement | The tool names are hardcoded in the agent prompt, the Research Output schema and the Quality Gate and must be updated by hand |
-| German and English reports | Feature | Kleinanzeigen works in both languages |
-| Keep Render awake or move off the free plan for demos | Improvement | Free plan sleeps (about 1 minute to wake) |
+| German and English reports | Feature | Kleinanzeigen works in both languages  |
