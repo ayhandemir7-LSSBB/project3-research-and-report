@@ -1,8 +1,14 @@
 # Fix My Process Agent
+A process problem, described once by the employee, becomes:
 
-**An autonomous n8n agent for Kleinanzeigen. An employee describes a process problem once. The agent researches it, checks it against internal rules and tools, and returns two reports: a safe fix the employee can use today, and a compliance-checked AI use case for leadership.**
+- an approved fix and a "How to..." guide for the employee
+- a checked use case for the AI team and for portfolio creation
 
-Ironhack AI Consulting & Integration Bootcamp · Project 3: Autonomous Company Research & Report Generation Agent · solo project by Ayhan Demir
+> Personal AI gives you an answer. **Fix My Process** gives you an approved one.
+
+**The tool that knows your company. A personal chatbot can’t tell you which internal tool solves your problem, if you may use it, or how to get access. Fix My Process knows your internal tools, AI policy and works council rules, so you get approved steps for today, with sources. Every case is logged, shaping what the company builds next.**
+
+An autonomous n8n agent for Kleinanzeigen. The agent researches it, checks it against internal rules and tools, and returns two reports: a safe fix the employee can use today, and a compliance-checked AI use case for leadership.
 
 **Live demo:** https://fix-my-process.onrender.com (free Render plan: the first visit takes about 1 minute to wake the app)
 
@@ -124,7 +130,7 @@ LangGraph stays the upgrade path for a step that must loop back with state, for 
 | Notion | One Report B page per case under "Fix My Process: Use Cases" |
 | Gradio 6 on Render | UI only: Form, Chat and Check status tabs. No business logic and no AI keys |
 
-**Knowledge base (RAG):** 4 fictional internal PDFs in [`Knowledgebase/`](Knowledgebase/). RAG is needed because the right answer depends on internal rules and tools that no web search knows.
+**Knowledge base (RAG) and context:** 4 fictional internal PDFs in [`Knowledgebase/`](Knowledgebase/). RAG is needed because the right answer depends on internal rules and tools that no web search knows.
 
 | PDF | Doc ID | Namespace | Contents |
 |---|---|---|---|
@@ -132,6 +138,17 @@ LangGraph stays the upgrade path for a step that must loop back with state, for 
 | `02_KA_Approved_Tools_List.pdf` | KA-AI-TOOLS-002 | `tools` | 5 internal tools (KAi Assist, Ticket Lens, FlowMate, Knowledge Finder, Insight Desk) with steps, owners and max data class; 6 approved external tools; pilot and not-approved tools; how to request access |
 | `03_KA_Works_Council_Agreement_AI.pdf` | KA-BV-AI-2026 | `works_council` | Information duty, co-determination, pre-approved uses |
 | `04_KA_Past_AI_Projects.pdf` | KA-AI-PROJ-004 | `past_projects` | Past projects P-01 to P-09 with outcomes and patterns |
+
+
+| KB Category | Real | Invented |
+|---|---|---|
+| **Company** | Kleinanzeigen, Germany's largest classifieds site, owned by Adevinta. The "Adevinta group tools" mention ties to real history | Every internal team, role, channel and the AI Governance Board |
+| **Laws** | EU AI Act (Reg. 2024/1689: Art. 5 prohibited practices, Art. 50 transparency, Annex III employment as high-risk), GDPR Art. 22, BetrVG §87(1) no. 6, §90 and §80(3), Einigungsstelle, Nachwirkung | How the documents apply them: data classes D1 to D5, rules G1 to G5, A1 to A7, R1 to R7 |
+| **External tools** | Microsoft 365 Copilot, DeepL Pro, Miro AI, Atlassian Intelligence, GitHub Copilot Business, Grammarly Business, Zapier | Their approval status, data classes and the 500 Copilot licences |
+| **Not-approved tools** | ChatGPT, Claude, Gemini, Otter.ai, Fireflies.ai, Read.ai, DeepL free | That they are banned at Kleinanzeigen |
+| **Platforms** | Zendesk, Confluence, Jira, Slack, Google Sheets, n8n | That Kleinanzeigen uses Zendesk, and that FlowMate runs on n8n |
+| **Works council agreement** | The structure is typical of a German Betriebsvereinbarung | All its content: dates, the 90-day log deletion, groups of 5, the annexes |
+
 
 **Chunking:** the Chunk by Section code node splits each PDF at its real section headings (max 1,200 characters) and starts every chunk with `[doc_id · section]`, so the agent can cite the exact section. `doc_id`, `source`, `section_title` and `namespace` are stored as metadata.
 
