@@ -10,7 +10,11 @@ A process problem, described once by the employee, becomes:
 
 An autonomous n8n agent for Kleinanzeigen. The agent researches it, checks it against internal rules and tools, and returns two reports: a safe fix the employee can use today, and a compliance-checked AI use case for leadership.
 
-**Live demo:** https://fix-my-process.onrender.com (free Render plan: the first visit takes about 1 minute to wake the app)
+**Live demo:** https://fix-my-process.onrender.com (free Render plan: the first visit takes about 1 minute to wake the app).  
+
+**User Demo:** https://drive.google.com/file/d/1aiF5ntc_K-4L2ypP4SU5n042G3Y0ihMp/view?usp=sharing
+
+**Marketting Demo:** https://drive.google.com/file/d/1RSdc51890DWZyl12qzNJbiCXCD5WRaOg/view?usp=sharing
 
 > All internal documents, cases and tool names are fictional demo data. Kleinanzeigen is the setting; no real company data is used.
 
